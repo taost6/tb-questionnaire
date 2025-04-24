@@ -8,5 +8,5 @@ export default defineConfig({
     alias: { "@": path.resolve(__dirname, "src") },
   },
   // GitHub Pages 用: リポジトリ名に合わせる
-  base: "/taost6/tb-questionnaire/",
+  base: "/tb-questionnaire/",
 });
