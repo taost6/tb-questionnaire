@@ -65,22 +65,52 @@ const sections = [
         { value: "otherOcc", label: "その他・分からない" },
       ]},
       { id: "workplaceName", label: "通学先・勤務先・技能実習先の名称", type: "text", conditional: d => !!d.occupation },
-      { id: "requestReason", label: "本問診を依頼された経緯", type: "radio", options: [
-        { value: "diagnosed", label: "医療機関にて結核の診断を受けた" },
-        { value: "possible", label: "医療機関にて結核の可能性を指摘された" },
-        { value: "investigation", label: "結核患者の濃厚接触者として調査を受けた" },
-        { value: "contactPossible", label: "結核患者との接触の可能性を指摘された" },
-        { value: "healthCheck", label: "健康診断で異常を指摘された" },
-        { value: "unknown", label: "よく分からない" },
-      ]},
-      { id: "contactRelation", label: "患者との関係", type: "radio", options: [
-        { value: "living", label: "同居している" },
-        { value: "work", label: "職場等で日常的に接している" },
-        { value: "unknownRelation", label: "わからない" },
-        { value: "otherRelation", label: "その他" },
-      ], conditional: d => ["investigation","contactPossible"].includes(d.requestReason) },
-      { id: "contactPatientName", label: "患者の名前", type: "text", conditional: d => ["living","work"].includes(d.contactRelation) },
-      { id: "contactDuration", label: "患者と、どれくらいの期間、どういう具合に接触してきたか、教えて下さい", type: "text", conditional: d => ["work","unknownRelation"].includes(d.contactRelation) },
+
+      {
+        id: "requestReason",
+        label: "本問診を依頼された経緯",
+        type: "radio",
+        options: [
+          { value: "diagnosed",       label: "医療機関にて結核の診断を受けた" },
+          { value: "possible",        label: "医療機関にて結核の可能性を指摘された" },
+          { value: "investigation",   label: "結核患者の濃厚接触者として調査を受けた" },
+          { value: "contactPossible", label: "結核患者との接触の可能性を指摘された" },
+          { value: "healthCheck",     label: "健康診断で異常を指摘された" },
+          { value: "unknown",         label: "よく分からない" },
+        ],
+        children: [
+          {
+            id: "contactRelation",
+            label: "患者との関係",
+            type: "radio",
+            options: [
+              { value: "living",          label: "同居している" },
+              { value: "work",            label: "職場等で日常的に接している" },
+              { value: "unknownRelation", label: "わからない" },
+              { value: "otherRelation",   label: "その他" },
+            ],
+            conditionalValue: "investigation",
+            // ↓ ここの children に移動します ↓
+            children: [
+              {
+                id: "contactPatientName",
+                label: "患者の名前",
+                type: "text",
+                conditional: d => ["living","work"].includes(d.contactRelation)
+              },
+              {
+                id: "contactDuration",
+                label:
+                  "患者と、どれくらいの期間、どういう具合に接触してきたか、教えて下さい",
+                type: "text",
+                conditional: d =>
+                  ["work","unknownRelation"].includes(d.contactRelation)
+              },
+            ]
+          }
+        ]
+      },
+
     ]
   },
   {
@@ -317,6 +347,9 @@ function Field({ field, data, setData }) {
   const labelCls = "block mb-1 font-semibold";
   const value = data[field.id] || field.default || "";
 
+
+//  console.log("Rendering field", field.id, "value=", data[field.id]);
+
   // Inline occupation and otherOcc
   if (field.id === "occupation") {
     return (
@@ -409,40 +442,6 @@ function Field({ field, data, setData }) {
     );
   }
 
-  // Inline requestReason
-  if(field.id === "requestReason") {
-    return (
-      <div className="mb-4">
-        <Label className={labelCls}>{field.label}</Label>
-        <RadioGroup value={data.requestReason||""} onValueChange={v=>setData(d=>({...d,requestReason:v}))} className="space-y-1 ml-4">
-          {field.options.map(o=>(
-            <div key={o.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={o.value} id={`req-${o.value}`} />
-              <Label htmlFor={`req-${o.value}`}>{o.label}</Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
-    );
-  }
-
-  // Inline contactRelation
-  if(field.id === "contactRelation") {
-    return (
-      <div className="mb-4">
-        <Label className={labelCls}>{field.label}</Label>
-        <RadioGroup value={data.contactRelation||""} onValueChange={v=>setData(d=>({...d,contactRelation:v}))} className="space-y-1 ml-4">
-          {field.options.map(o=>(
-            <div key={o.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={o.value} id={`rel-${o.value}`} />
-              <Label htmlFor={`rel-${o.value}`}>{o.label}</Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
-    );
-  }
-
   switch(field.type) {
     case "text": return (
       <div className="mb-4">
@@ -462,19 +461,57 @@ function Field({ field, data, setData }) {
         <Select id={field.id} options={field.options} value={data[field.id]||field.default} onChange={v=>setData(d=>({...d,[field.id]:v}))} />
       </div>
     );
-    case "radio": return (
-      <div className="mb-4">
-        <Label className="block mb-2 font-semibold">{field.label}</Label>
-        <RadioGroup value={data[field.id]||field.default||""} onValueChange={v=>setData(d=>({...d,[field.id]:v}))} className="space-y-1 ml-4">
-          {field.options.map(o=>(
-            <div key={o.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={o.value} id={`${field.id}-${o.value}`} />
-              <Label htmlFor={`${field.id}-${o.value}`}>{o.label}</Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
-    );
+
+
+    case "radio":
+      return (
+        <div className="mb-4">
+          {/* 設問ラベル */}
+          <p className={labelCls}>{field.label}</p>
+
+          {/* ラジオ選択肢 */}
+          <div className="space-y-1 ml-4">
+            {field.options.map(opt => {
+              const selected = data[field.id] === opt.value;
+              return (
+                <div key={opt.value}>
+                  {/* ラジオボタン本体 */}
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name={field.id}
+                      value={opt.value}
+                      checked={selected}
+                      onChange={e =>
+                        setData(d => ({ ...d, [field.id]: e.target.value }))
+                      }
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+
+                  {/* ここから子フィールド展開（選択中のみ） */}
+                  {selected && field.children?.map(child => {
+                    // 子にconditional関数があればそれを評価、
+                    // なければ conditionalValue との比較で判定
+                    const ok = child.conditional
+                      ? child.conditional(data)
+                      : data[field.id] === child.conditionalValue;
+                    if (!ok) return null;
+                    return (
+                      <div key={child.id} className="ml-8 mt-2">
+                        <Field field={child} data={data} setData={setData} />
+                      </div>
+                    );
+                  })}
+                  {/* ここまで子フィールド展開 */}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+
+
     case "check": return (
       <div className="mb-4 flex items-center space-x-2 justify-end">
         <Checkbox id={field.id} checked={!!data[field.id]} onCheckedChange={v=>setData(d=>({...d,[field.id]:v}))} />
