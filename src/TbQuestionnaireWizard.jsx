@@ -8,6 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 
+const patientReasons = ['diagnosed', 'possible', 'healthCheck', 'unknown'];
+
 // Helper: generic select with indent
 function Select({ id, options, value, onChange }) {
   return (
@@ -71,22 +73,230 @@ const sections = [
         { value: "healthCheck", label: "健康診断で異常を指摘された" },
         { value: "unknown", label: "よく分からない" },
       ]},
-      { id: "contactRelation", label: "患者との関係を教えてください", type: "radio", options: [
+      { id: "contactRelation", label: "患者との関係", type: "radio", options: [
         { value: "living", label: "同居している" },
         { value: "work", label: "職場等で日常的に接している" },
         { value: "unknownRelation", label: "わからない" },
         { value: "otherRelation", label: "その他" },
       ], conditional: d => ["investigation","contactPossible"].includes(d.requestReason) },
-      { id: "contactPatientName", label: "患者の名前を教えてください", type: "text", conditional: d => ["living","work"].includes(d.contactRelation) },
+      { id: "contactPatientName", label: "患者の名前", type: "text", conditional: d => ["living","work"].includes(d.contactRelation) },
       { id: "contactDuration", label: "患者と、どれくらいの期間、どういう具合に接触してきたか、教えて下さい", type: "text", conditional: d => ["work","unknownRelation"].includes(d.contactRelation) },
     ]
   },
-  { id: "health", title: "III. 健康状況", fields: [
-      { id: "cough2w", label: "過去2週間以上『せき』『たん』が続いていますか?", type: "radio", options: [
-        { value: "yes", label: "はい" }, { value: "no", label: "いいえ" }
-      ] }
-    ]
+  {
+    id: 'health',
+    title: 'III. 健康状況',
+    fields: [
+      // --- 患者のみ聴取 ---
+      {
+        id: 'symptomSince',
+        label: '「せき」や「たん」といった症状は、いつから続いていますか？',
+        type: 'radio',
+        options: [
+          { value: 'none',  label: '① 特に症状はない' },
+          { value: 'since', label: '② （　　）年（　　）月頃から', inputs: ['year', 'month'] },
+          { value: 'other', label: '③ その他・わからない' },
+        ],
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'medicalInstitutions',
+        label: '今回、診断がつくまで受信した医療機関を教えて下さい',
+        type: 'text',
+        placeholder: '複数ある場合は列挙して下さい',
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'pastTb',
+        label: '今までに結核に罹ったことがありますか？',
+        type: 'radio',
+        options: [
+          { value: 'no',      label: '① なし' },
+          { value: 'yes',     label: '② あり', inputs: ['year'] },
+          { value: 'unknown', label: '③ わからない' },
+        ],
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'pastTbTreatment',
+        label: '過去の結核治療について教えて下さい',
+        type: 'radio',
+        options: [
+          { value: 'none',    label: '① なし' },
+          { value: 'treated', label: '② あり', inputs: ['year', 'drugName'] },
+          { value: 'dropped', label: '③ あったが脱落した' },
+          { value: 'unk',     label: '④ わからない' },
+        ],
+        conditional: d =>
+          patientReasons.includes(d.requestReason) && d.pastTb === 'yes',
+      },
+      {
+        id: 'contactWithTb',
+        label: '症状のある結核患者と接触したことがありますか？',
+        type: 'radio',
+        options: [
+          { value: 'no',      label: '① なし' },
+          { value: 'yes',     label: '② あり', inputs: ['year', 'contactPerson'] },
+          { value: 'unknown', label: '③ わからない' },
+        ],
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'hospitalizations',
+        label: 'この2年間で入院した医療機関があれば教えて下さい',
+        type: 'text',
+        placeholder: '大まかな入院時期も記載して下さい',
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'regularVisits',
+        label: '定期的な通院先の医療機関があれば教えて下さい',
+        type: 'text',
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+
+      // --- 患者以外に聴取 ---
+      {
+        id: 'cough2w',
+        label: 'この２週間以上「せき」や「たん」が続いていますか？',
+        type: 'radio',
+        options: [
+          { value: 'yes',     label: '① はい' },
+          { value: 'no',      label: '② いいえ' },
+          { value: 'unknown', label: '③ わからない' },
+        ],
+        conditional: d => !patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'nonPatientSince',
+        label: '症状はいつごろから生じていますか？',
+        type: 'radio',
+        options: [
+          { value: 'lt1m', label: '① １か月未満' },
+          { value: '1to2m', label: '② １か月以上２か月未満' },
+          { value: '2to3m', label: '③ ２か月以上３か月未満' },
+          { value: '3to6m', label: '④ ３か月以上６か月未満' },
+          { value: 'gt6m',   label: '⑤ ６か月以上' },
+          { value: 'unk',    label: '⑥ よくわからない' },
+        ],
+        conditional: d =>
+          !patientReasons.includes(d.requestReason) && d.cough2w === 'yes',
+      },
+      {
+        id: 'nonPatientTreated',
+        label: 'その「せき」や「たん」について、治療や検査を受けていますか？',
+        type: 'radio',
+        options: [
+          { value: 'yes',     label: '① はい' },
+          { value: 'no',      label: '② いいえ' },
+          { value: 'unknown', label: '③ わからない' },
+        ],
+        conditional: d =>
+          !patientReasons.includes(d.requestReason) && d.cough2w === 'yes',
+      },
+      {
+        id: 'respiratoryHistory',
+        label: '過去２年間で、「ぜんそく」など、何らかの呼吸器疾患といわれたことがありますか？',
+        type: 'checkbox',
+        options: [
+          { value: 'infiltration', label: '① 肺浸潤' },
+          { value: 'pleuritis',    label: '② 胸膜炎' },
+          { value: 'peritonitis',   label: '③ 肋膜炎' },
+          { value: 'lymph',         label: '④ 頚部リンパ節結核等' },
+          { value: 'other',         label: '⑤ その他', inputs: ['otherRespiratory'] },
+          { value: 'unk',           label: '⑥ わからない' },
+        ],
+        conditional: d =>
+          !patientReasons.includes(d.requestReason) && d.cough2w === 'yes',
+      },
+      {
+        id: 'regularCheckup',
+        label: '健康診断を定期的に受けていますか？',
+        type: 'radio',
+        options: [
+          { value: 'annual',   label: '① 毎年受けている' },
+          { value: 'fewYear',  label: '② 数年に一度受けている' },
+          { value: 'gt3year',  label: '③ ３年間以上受けていない' },
+          { value: 'other',    label: '④ その他・わからない' },
+        ],
+        conditional: d => !patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'checkupFollow',
+        label: '検診にて要精密検査を指示されていますか？',
+        type: 'radio',
+        options: [
+          { value: 'none',    label: '① 指示されていない' },
+          { value: 'notDone', label: '② 指示を受けたが受診していない' },
+          { value: 'done',    label: '③ 指示を受け受診している' },
+          { value: 'other',   label: '④ その他・わからない' },
+        ],
+        conditional: d =>
+          !patientReasons.includes(d.requestReason) &&
+          ['annual','fewYear','gt3year'].includes(d.regularCheckup),
+      },
+      {
+        id: 'tbMedication',
+        label: '現在、結核の治療薬を飲んでいますか？',
+        type: 'radio',
+        options: [
+          { value: 'no',    label: '① 飲んでいない' },
+          { value: 'planned', label: '② 飲むことになっている' },
+          { value: 'yes',   label: '③ 飲んでいる' },
+          { value: 'other', label: '④ その他・わからない' },
+        ],
+        conditional: d => !patientReasons.includes(d.requestReason),
+      },
+
+      // --- 全員に聴取 ---
+      {
+        id: 'bcg',
+        label: '今までBCG接種(スタンプ式の予防接種)をうけたことがありますか？',
+        type: 'radio',
+        options: [
+          { value: 'yes',    label: '① あり' },
+          { value: 'no',     label: '② なし' },
+          { value: 'other',  label: '③ その他・わからない' },
+        ],
+      },
+      {
+        id: 'bcgReason',
+        label: 'それはどうしてですか？',
+        type: 'radio',
+        options: [
+          { value: 'tuber', label: '① ツベルクリン反応検査が陽性だったため' },
+          { value: 'other', label: '② その他の理由', inputs: ['bcgOtherReason'] },
+        ],
+        conditional: d => d.bcg === 'no',
+      },
+      {
+        id: 'healthStatus',
+        label: '健康状態について、当てはまるものを選んで下さい',
+        type: 'radio',
+        options: [
+          { value: 'healthy',   label: '① 健康・定期的な通院等なし' },
+          { value: 'underTreat', label: '② 通院中・入院歴あり' },
+          { value: 'other',     label: '③ その他', inputs: ['otherHealthStatus'] },
+        ],
+      },
+      {
+        id: 'comorbidities',
+        label: '当てはまるものを全て選んで下さい',
+        type: 'checkbox',
+        options: [
+          { value: 'diabetes',    label: '① 糖尿病' },
+          { value: 'cancer',      label: '② がん・悪性腫瘍' },
+          { value: 'pneumoconiosis', label: '③ 塵肺' },
+          { value: 'gastrectomy', label: '④ 胃切除手術後' },
+          { value: 'immunosuppressant', label: '⑤ 免疫抑制剤の使用' },
+          { value: 'pregnant',    label: '⑥ 妊娠中' },
+          { value: 'other',       label: '⑦ その他', inputs: ['otherComorbidity'] },
+        ],
+        conditional: d => d.healthStatus === 'underTreat',
+      },
+    ],
   },
+
   { id: "lifestyle", title: "IV. ライフスタイル", fields: [
       { id: "livingSituation", label: "住まい・生活状況", type: "radio", options: [
         "単身生活","家族と同居","施設共同生活","医療機関入院中","住所不定","その他"
