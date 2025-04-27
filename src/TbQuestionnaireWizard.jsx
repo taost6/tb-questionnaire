@@ -42,9 +42,33 @@ const sections = [
   },
   { id: "basic", title: "II. 基礎情報", fields: [
       { id: "name", label: "氏名", type: "text" },
-      { id: "age", label: "年齢", type: "select", options: ageOptions, default: "20" },
-      { id: "monthAge", label: "月齢 (0歳の場合)", type: "text", placeholder: "例: 6", conditional: d => d.age === "0" },
-      { id: "actualAge", label: "実年齢 (>100歳)", type: "text", placeholder: "例: 105", conditional: d => d.age === ">100" },
+
+      {
+        id: "age",
+        label: "年齢",
+        type: "select",
+        options: ageOptions,
+        default: "20",
+        children: [
+          {
+            id: "monthAge",
+            label: "月齢 (0歳の場合)",
+            type: "text",
+            placeholder: "例: 6",
+            // age が "0" のとき表示
+            conditionalValue: "0"
+          },
+          {
+            id: "actualAge",
+            label: "実年齢 (>100歳)",
+            type: "text",
+            placeholder: "例: 105",
+            // age が ">100" のとき表示
+            conditionalValue: ">100"
+          }
+        ]
+      },
+
       { id: "sex", label: "性別", type: "radio", options: [
         { value: "male", label: "男性" }, { value: "female", label: "女性" }, { value: "other", label: "その他" }
       ]},
@@ -90,7 +114,6 @@ const sections = [
               { value: "otherRelation",   label: "その他" },
             ],
             conditionalValue: "investigation",
-            // ↓ ここの children に移動します ↓
             children: [
               {
                 id: "contactPatientName",
@@ -100,12 +123,18 @@ const sections = [
               },
               {
                 id: "contactDuration",
-                label:
-                  "患者と、どれくらいの期間、どういう具合に接触してきたか、教えて下さい",
+                label: "接触期間・状況",
                 type: "text",
-                conditional: d =>
-                  ["work","unknownRelation"].includes(d.contactRelation)
+                conditional: d => ["work","unknownRelation"].includes(d.contactRelation)
               },
+              // 「その他」を選んだときの自由記述
+              {
+                id: "contactRelationOther",
+                label: "具体的に記入してください",
+                type: "text",
+                placeholder: "例: 親戚として毎週面会",
+                conditionalValue: "otherRelation"
+              }
             ]
           }
         ]
@@ -459,9 +488,26 @@ function Field({ field, data, setData }) {
       <div className="mb-4">
         <Label className={labelCls} htmlFor={field.id}>{field.label}</Label>
         <Select id={field.id} options={field.options} value={data[field.id]||field.default} onChange={v=>setData(d=>({...d,[field.id]:v}))} />
+        {/* ── ここから子フィールド描画 ── */}
+        {field.children?.map(child => {
+          // child.conditional があればそれを優先、なければ conditionalValue との比較
+          const ok = child.conditional
+            ? child.conditional(data)
+            : data[field.id] === child.conditionalValue;
+          if (!ok) return null;
+            return (
+                <div key={child.id} className="ml-4">
+                  <Field
+                    field={child}
+                    data={data}
+                    setData={setData}
+                  />
+                </div>
+              )
+        })}
+        {/* ── ここまで ── */}
       </div>
     );
-
 
     case "radio":
       return (
