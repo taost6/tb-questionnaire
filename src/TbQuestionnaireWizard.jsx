@@ -208,7 +208,7 @@ const sections = [
             conditionalValue: "yes"
           },
           {
-            id: "pastTbEpisode",
+            id: "pastTbTreatment",
             label: "治療について詳しく記入してください",
             type: "text",
             placeholder: "○○を内服していましたが、2ヶ月で脱落しました",
@@ -443,9 +443,24 @@ const sections = [
       ].map(v=>({value:v,label:v})) }
     ]
   },
+
   { id: "contacts", title: "V. 接触者", fields: [
-      { id: "householdContacts", label: "同居家族 (氏名・年齢・基礎疾患)", type: "textarea" },
-      { id: "workSchoolContacts", label: "職場・通学先等の日常接触相手", type: "textarea" }
+      { id: "householdContacts",
+        label: "同居されている方 (氏名・年齢・基礎疾患)",
+        type: "list",
+        placeholder: "例: 山田太郎(35)・糖尿病" 
+      },
+      { id: "workSchoolContacts",
+        label: "職場・通学先等での日常的な接触相手",
+        type: "list",
+        placeholder: "例: 同僚・鈴木次郎・(40代)・持病あり" 
+      },
+      { id: "otherRegularContacts",
+        label: "その他の活動における日常的な接触相手",
+        type: "list",
+        placeholder: "例: リハビリ通院先の担当者・西村さん" 
+      },
+      { id: "GeneralComments", label: "その他、気になることやご質問", type: "textarea" },
     ]
   }
 ];
@@ -716,15 +731,68 @@ function Field({ field, data, setData }) {
         </div>
       );
 
+    case "list":
+      // data[field.id] は文字列の配列として管理します
+      const list = data[field.id] || [""];
+      const setList = newList => setData(d => ({ ...d, [field.id]: newList }));
+      return (
+        <div className="mb-4">
+          <Label className={labelCls}>{field.label}</Label>
+          <div className="ml-4 space-y-2">
+            {list.map((item, idx) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <Input
+                  value={item}
+                  placeholder={field.placeholder || ""}
+                  onChange={e => {
+                    const arr = [...list];
+                    arr[idx] = e.target.value;
+                    setList(arr);
+                  }}
+                />
+                {/* 削除ボタン */}
+                {list.length > 1 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const arr = list.filter((_, i) => i !== idx);
+                      setList(arr);
+                    }}
+                  >
+                    削除
+                  </Button>
+                )}
+              </div>
+            ))}
+            {/* 追加ボタン */}
+            <div className="w-full flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setList([...list, ""])}
+              >
+                追加
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+
     default: return null;
   }
 }
 
 export default function TbQuestionnaireWizard() {
   const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState({ language: "日本語", nationality: "jp", age: "20" });
+  const [formData, setFormData] = useState({ language: "日本語", nationality: "jp", age: "20",
+    householdContactsList: [""],
+    workSchoolContactsList: [""],
+    otherRegularContactsList: [""],
+  });
   const cur = sections[step];
   const progress = ((step + 1) / sections.length) * 100;
+
   return (
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">結核問診フォーム</h1>
