@@ -127,7 +127,6 @@ const sections = [
                 type: "text",
                 conditional: d => ["work","unknownRelation"].includes(d.contactRelation)
               },
-              // 「その他」を選んだときの自由記述
               {
                 id: "contactRelationOther",
                 label: "具体的に記入してください",
@@ -152,17 +151,35 @@ const sections = [
         label: '「せき」や「たん」といった症状は、いつから続いていますか？',
         type: 'radio',
         options: [
-          { value: 'none',  label: '① 特に症状はない' },
-          { value: 'since', label: '② （　　）年（　　）月頃から', inputs: ['year', 'month'] },
-          { value: 'other', label: '③ その他・わからない' },
+          { value: 'none',  label: '特に症状はない' },
+          { value: 'since-1w', label: '1～2週間前から' },
+          { value: 'since-2w', label: '2～3週間前から' },
+          { value: 'since-mt1m', label: '1ヶ月以上前から' },
+          { value: 'other', label: 'その他・わからない' },
         ],
+        conditional: d => patientReasons.includes(d.requestReason),
+        children: [
+          {
+            id: "symptomSinceDetailed",
+            label: "より詳しく記入してください",
+            type: "text",
+            placeholder: "○○年○○月頃から",
+            conditionalValue: "since-mt1m"
+          }
+        ]
+      },
+      {
+        id: 'regularVisits',
+        label: '定期的な通院先の医療機関があれば教えて下さい',
+        type: 'text',
+        placeholder: '複数ある場合は列挙して下さい',
         conditional: d => patientReasons.includes(d.requestReason),
       },
       {
         id: 'medicalInstitutions',
-        label: '今回診断が付く以前に受診した医療機関を教えて下さい',
+        label: '今回結核の診断をした医療機関を教えて下さい',
         type: 'text',
-        placeholder: '複数ある場合は列挙して下さい',
+        placeholder: '複数の医療機関を受診していた場合は列挙して下さい',
         conditional: d => patientReasons.includes(d.requestReason),
       },
       {
@@ -173,45 +190,51 @@ const sections = [
         conditional: d => patientReasons.includes(d.requestReason),
       },
       {
-        id: 'regularVisits',
-        label: '定期的な通院先の医療機関があれば教えて下さい',
-        type: 'text',
-        conditional: d => patientReasons.includes(d.requestReason),
-      },
-      {
         id: 'pastTb',
         label: '今までに結核に罹ったことがありますか？',
         type: 'radio',
         options: [
-          { value: 'no',      label: '① なし' },
-          { value: 'yes',     label: '② あり', inputs: ['year'] },
-          { value: 'unknown', label: '③ わからない' },
+          { value: 'no',      label: 'なし' },
+          { value: 'yes',     label: 'あり' },
+          { value: 'unknown', label: 'わからない' },
         ],
         conditional: d => patientReasons.includes(d.requestReason),
-      },
-      {
-        id: 'pastTbTreatment',
-        label: '過去の結核治療について教えて下さい',
-        type: 'radio',
-        options: [
-          { value: 'none',    label: '① なし' },
-          { value: 'treated', label: '② あり', inputs: ['year', 'drugName'] },
-          { value: 'dropped', label: '③ あったが脱落した' },
-          { value: 'unk',     label: '④ わからない' },
-        ],
-        conditional: d =>
-          patientReasons.includes(d.requestReason) && d.pastTb === 'yes',
+        children: [
+          {
+            id: "pastTbEpisode",
+            label: "時期などを詳しく記入してください",
+            type: "text",
+            placeholder: "○○年頃、入院していました",
+            conditionalValue: "yes"
+          },
+          {
+            id: "pastTbEpisode",
+            label: "治療について詳しく記入してください",
+            type: "text",
+            placeholder: "○○を内服していましたが、2ヶ月で脱落しました",
+            conditionalValue: "yes"
+          }
+        ]
       },
       {
         id: 'contactWithTb',
         label: '症状のある結核患者と接触したことがありますか？',
         type: 'radio',
         options: [
-          { value: 'no',      label: '① なし' },
-          { value: 'yes',     label: '② あり', inputs: ['year', 'contactPerson'] },
-          { value: 'unknown', label: '③ わからない' },
+          { value: 'no',      label: 'なし' },
+          { value: 'yes',     label: 'あり' },
+          { value: 'unknown', label: 'わからない' },
         ],
         conditional: d => patientReasons.includes(d.requestReason),
+        children: [
+          {
+            id: "contactWithTbDetail",
+            label: "詳しく記入してください",
+            type: "text",
+            placeholder: "○○年○○月頃、時々会っていた友人が発症した",
+            conditionalValue: "yes"
+          }
+        ]
       },
 
       // --- 患者以外に聴取 ---
@@ -571,7 +594,9 @@ function Field({ field, data, setData }) {
       return (
         <div className="mb-4">
           {/* 設問ラベル */}
-          <p className={labelCls}>{field.label}</p>
+          <Label htmlFor={field.id} className={labelCls}>
+          {field.label}
+          </Label>
 
           {/* ラジオ選択肢 */}
           <div className="space-y-1 ml-4">
