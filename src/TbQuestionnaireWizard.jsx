@@ -300,7 +300,7 @@ const sections = [
               { value: 'other',   label: 'その他・わからない' },
             ],
             // ①～③を選んだときだけ表示
-            conditional: d => ['annual','fewYear','gt3year'].includes(d.regularCheckup)
+            conditional: d => ['annual','fewYear'].includes(d.regularCheckup)
           }
         ]
       },
@@ -331,46 +331,86 @@ const sections = [
         label: '今までBCG接種(スタンプ式の予防接種)をうけたことがありますか？',
         type: 'radio',
         options: [
-          { value: 'yes',    label: '① あり' },
-          { value: 'no',     label: '② なし' },
-          { value: 'other',  label: '③ その他・わからない' },
+          { value: 'yes',    label: 'あり' },
+          { value: 'no',     label: 'なし' },
+          { value: 'other',  label: 'その他・わからない' },
         ],
-      },
-      {
-        id: 'bcgReason',
-        label: 'それはどうしてですか？',
-        type: 'radio',
-        options: [
-          { value: 'tuber', label: '① ツベルクリン反応検査が陽性だったため' },
-          { value: 'other', label: '② その他の理由', inputs: ['bcgOtherReason'] },
-        ],
-        conditional: d => d.bcg === 'no',
+        children: [
+          {
+            id: 'bcgNote',
+            type: 'note',
+            label: '※ お子さんの場合は、母子手帳を参考にご回答ください',
+            conditionalValue: 'other'
+          },
+          {
+            id: 'bcgReason',
+            label: 'それはどうしてですか？',
+            type: 'radio',
+            options: [
+              { value: 'tuber', label: 'ツベルクリン反応検査が陽性だったため' },
+              { value: 'other', label: 'その他の理由' },
+            ],
+            // bcg === 'no' のときだけ表示
+            conditionalValue: 'no',
+            children: [
+              {
+                id: 'bcgOtherReason',
+                label: 'その他の場合、具体的にご記入ください',
+                type: 'text',
+                placeholder: '例: 手帳を紛失したため',
+                // 上の radio で 'other' を選んだときだけ表示
+                conditionalValue: 'other'
+              }
+            ]
+          }
+        ]
       },
       {
         id: 'healthStatus',
         label: '健康状態について、当てはまるものを選んで下さい',
         type: 'radio',
         options: [
-          { value: 'healthy',   label: '① 健康・定期的な通院等なし' },
-          { value: 'underTreat', label: '② 通院中・入院歴あり' },
-          { value: 'other',     label: '③ その他', inputs: ['otherHealthStatus'] },
+          { value: 'healthy',    label: '健康 (定期的な通院等なし)' },
+          { value: 'underTreat', label: '通院中、ないし、入院歴あり' },
+          { value: 'other',      label: 'その他' },
         ],
-      },
-      {
-        id: 'comorbidities',
-        label: '当てはまるものを全て選んで下さい',
-        type: 'checkbox',
-        options: [
-          { value: 'diabetes',    label: '① 糖尿病' },
-          { value: 'cancer',      label: '② がん・悪性腫瘍' },
-          { value: 'pneumoconiosis', label: '③ 塵肺' },
-          { value: 'gastrectomy', label: '④ 胃切除手術後' },
-          { value: 'immunosuppressant', label: '⑤ 免疫抑制剤の使用' },
-          { value: 'pregnant',    label: '⑥ 妊娠中' },
-          { value: 'other',       label: '⑦ その他', inputs: ['otherComorbidity'] },
-        ],
-        conditional: d => d.healthStatus === 'underTreat',
-      },
+        children: [
+          // 「② 通院中・入院歴あり」のときに出すチェックボックス群
+          {
+            id: 'comorbidities',
+            label: '当てはまるものを全て選んで下さい',
+            type: 'checkbox',
+            options: [
+              { value: 'diabetes',         label: '糖尿病' },
+              { value: 'cancer',           label: 'がん・悪性腫瘍' },
+              { value: 'pneumoconiosis',   label: '塵肺' },
+              { value: 'gastrectomy',      label: '胃切除手術後' },
+              { value: 'immunosuppressant',label: '免疫抑制剤の使用' },
+              { value: 'pregnant',         label: '妊娠中' },
+              { value: 'other',            label: 'その他', inputs: ['otherComorbidity'] },
+            ],
+            conditionalValue: 'underTreat',
+            children: [
+              {
+                id: 'otherComorbidity',
+                label: '',
+                type: 'text',
+                placeholder: '具体的に',
+                // comorbidities に 'other' が含まれるときだけ表示
+                conditionalValue: 'other'
+              }
+            ]  
+          },
+          // 「③ その他」を選んだときに出す自由記述欄
+          {
+            id: 'otherHealthStatus',
+            label: '',
+            type: 'text',
+            placeholder: '例: 通院はしていないが調子が悪い',
+            conditionalValue: 'other'
+          }
+        ]
+      }
     ],
   },
 
@@ -643,6 +683,14 @@ function Field({ field, data, setData }) {
         <Textarea id={field.id} className="ml-4" value={data[field.id]||""} onChange={e=>setData(d=>({...d,[field.id]:e.target.value}))} />
       </div>
     );
+
+    case "note":
+      return (
+        <div className="mb-2 ml-4">
+          <p className="text-sm text-gray-600">{field.label}</p>
+        </div>
+      );
+
     default: return null;
   }
 }
