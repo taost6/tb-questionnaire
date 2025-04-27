@@ -378,7 +378,7 @@ const sections = [
             children: [
               {
                 id: 'bcgOtherReason',
-                label: 'その他の場合、具体的にご記入ください',
+                label: '理由をご記入ください',
                 type: 'text',
                 placeholder: '例: 手帳を紛失したため',
                 // 上の radio で 'other' を選んだときだけ表示
@@ -437,11 +437,109 @@ const sections = [
     ],
   },
 
-  { id: "lifestyle", title: "IV. ライフスタイル", fields: [
-      { id: "livingSituation", label: "住まい・生活状況", type: "radio", options: [
-        "単身生活","家族と同居","施設共同生活","医療機関入院中","住所不定","その他"
-      ].map(v=>({value:v,label:v})) }
-    ]
+  {
+    id: "lifestyle",
+    title: "IV. ライフスタイル",
+   fields: [
+     // 住まい・生活状況
+     {
+       id: "livingSituation",
+       label: "住まい・生活状況について、当てはまるものを選んで下さい",
+       type: "radio",
+       options: [
+         { value: "alone",       label: "単身生活" },
+         { value: "withFamily",  label: "家族と同居" },
+         { value: "facility",    label: "老健・福祉施設等共同生活" },
+         { value: "hospital",    label: "医療機関入院中" },
+         { value: "homeless",    label: "住所不定またはホームレス経験がある(過去数年以内)" },
+         { value: "other",       label: "その他" }
+       ],
+       children: [
+         {
+           id: "facilityName",
+           type: "text",
+           label: "施設名称を教えて下さい",
+           placeholder: "施設名を記入してください",
+           conditionalValue: ["facility", "hospital"]
+         },
+         {
+           id: "otherLivingSituation",
+           type: "text",
+           placeholder: "具体的に記入してください",
+           conditionalValue: "other"
+         }
+       ]
+     },
+
+     // 家族や同居人の結核罹患
+     {
+       id: "familyTb",
+       label: "家族や同居人で、過去２年以内に結核にかかった人はいますか？",
+       type: "radio",
+       options: [
+         { value: "yes",     label: "いる" },
+         { value: "no",      label: "いない" },
+         { value: "unknown", label: "その他・わからない" }
+       ],
+       children: [
+         {
+           id: "familyTbDetail",
+           type: "text",
+           label: "どなたでしょうか",
+           placeholder: "氏名を入力",
+           conditionalValue: "yes"
+         }
+       ]
+     },
+
+     // 海外在住経験
+     {
+       id: "overseaStay",
+       label: "過去3年以内に、通算して半年以上、日本国外に住んでいたことがありますか？",
+       type: "radio",
+       options: [
+         { value: "yes", label: "はい" },
+         { value: "no",  label: "いいえ" }
+       ],
+       children: [
+         {
+           id: "overseaDuration",
+           type: "text",
+           label: "大まかな期間を教えて下さい",
+           placeholder: "例：2022年4月～2023年1月",
+           conditionalValue: "yes"
+         },
+         {
+           id: "overseaCountry",
+           type: "text",
+           label: "どちらの国でしょうか",
+           placeholder: "例：フィリピン、アメリカ合衆国",
+           conditionalValue: "yes"
+         }
+       ]
+     },
+
+     // 利用交通機関
+     {
+       id: "transport",
+       label: "よく利用する交通機関はありますか？",
+       type: "group",
+       children: [
+         {
+           id: "transportName",
+           type: "text",
+           label: "名称：",
+           placeholder: "例：JR函館本線"
+         },
+         {
+           id: "transportRoute",
+           type: "text",
+           label: "経路等：",
+           placeholder: "例：札幌→旭川"
+         }
+       ]
+     }
+   ]
   },
 
   { id: "contacts", title: "V. 接触者", fields: [
@@ -471,9 +569,6 @@ function Field({ field, data, setData }) {
   const set = v => setData(d => ({ ...d, [field.id]: v }));
   const labelCls = "block mb-1 font-semibold";
   const value = data[field.id] || field.default || "";
-
-
-//  console.log("Rendering field", field.id, "value=", data[field.id]);
 
   // Inline occupation and otherOcc
   if (field.id === "occupation") {
@@ -555,7 +650,7 @@ function Field({ field, data, setData }) {
                         setData(d => ({ ...d, otherOccText: e.target.value }))
                       }
                       className="border rounded px-2 py-1 w-full"
-                      placeholder="具体的な職業を入力してください"
+                      placeholder="ご説明ください"
                     />
                   </div>
                 )}
