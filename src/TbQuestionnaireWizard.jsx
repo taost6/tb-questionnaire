@@ -101,9 +101,22 @@ const sections = [
       },
       {
         id: 'medicalInstitutions',
-        label: '今回、診断がつくまで受信した医療機関を教えて下さい',
+        label: '今回診断が付く以前に受診した医療機関を教えて下さい',
         type: 'text',
         placeholder: '複数ある場合は列挙して下さい',
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'hospitalizations',
+        label: 'この2年間で入院した医療機関があれば教えて下さい',
+        type: 'text',
+        placeholder: '大まかな入院時期も記載して下さい',
+        conditional: d => patientReasons.includes(d.requestReason),
+      },
+      {
+        id: 'regularVisits',
+        label: '定期的な通院先の医療機関があれば教えて下さい',
+        type: 'text',
         conditional: d => patientReasons.includes(d.requestReason),
       },
       {
@@ -139,19 +152,6 @@ const sections = [
           { value: 'yes',     label: '② あり', inputs: ['year', 'contactPerson'] },
           { value: 'unknown', label: '③ わからない' },
         ],
-        conditional: d => patientReasons.includes(d.requestReason),
-      },
-      {
-        id: 'hospitalizations',
-        label: 'この2年間で入院した医療機関があれば教えて下さい',
-        type: 'text',
-        placeholder: '大まかな入院時期も記載して下さい',
-        conditional: d => patientReasons.includes(d.requestReason),
-      },
-      {
-        id: 'regularVisits',
-        label: '定期的な通院先の医療機関があれば教えて下さい',
-        type: 'text',
         conditional: d => patientReasons.includes(d.requestReason),
       },
 
@@ -318,40 +318,93 @@ function Field({ field, data, setData }) {
   const value = data[field.id] || field.default || "";
 
   // Inline occupation and otherOcc
-  if(field.id === "occupation") {
+  if (field.id === "occupation") {
     return (
-      <div className="mb-4">
-        <Label className={labelCls}>{field.label}</Label>
-        <RadioGroup value={value} onValueChange={set} className="space-y-1 ml-4">
-          {field.options.map(o => (
-            <div key={o.value} className="flex flex-col">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value={o.value} id={`occ-${o.value}`} />
-                <Label htmlFor={`occ-${o.value}`}>{o.label}</Label>
+      <div className="mb-6">
+        <Label className={labelCls} htmlFor="occupation">
+        {field.label}
+        </Label>
+        <div className="space-y-2 ml-4">
+          {field.options.map(o => {
+            const selected = data.occupation === o.value;
+            return (
+              <div key={o.value} className="mb-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="occupation"
+                    value={o.value}
+                    checked={selected}
+                    onChange={e => setData(d => ({ ...d, occupation: e.target.value }))}
+                  />
+                  <span className="ml-2">{o.label}</span>
+                </label>
+
+                {/* 「勤労者」を選択時：ネストされたラジオ群 */}
+                {o.value === "worker" && selected && (
+                  <div className="mt-2 ml-6 space-y-1">
+                    {[
+                      { value: "company", label: "会社員等・被雇用者" },
+                      { value: "self",    label: "自営業、自由業" },
+                      { value: "teacher", label: "教員、保母等" },
+                      { value: "service", label: "接客業等" },
+                      { value: "medical", label: "医療従事者・介護師等" },
+                      { value: "otherWorker", label: "その他" },
+                    ].map(opt => {
+                      const wtSelected = data.workerType === opt.value;
+                      return (
+                        <div key={opt.value} className="mb-1">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="workerType"
+                              value={opt.value}
+                              checked={wtSelected}
+                              onChange={e =>
+                                setData(d => ({ ...d, workerType: e.target.value }))
+                              }
+                            />
+                            <span className="ml-2">{opt.label}</span>
+                          </label>
+
+                          {/* ネスト内「その他」選択時：詳細入力 */}
+                          {opt.value === "otherWorker" && wtSelected && (
+                            <div className="mt-1 ml-8">
+                              <input
+                                type="text"
+                                value={data.otherWorkerText || ""}
+                                onChange={e =>
+                                  setData(d => ({ ...d, otherWorkerText: e.target.value }))
+                                }
+                                className="border rounded px-2 py-1 w-full"
+                                placeholder="具体的な職種を入力してください"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 「その他・分からない」を選択時：詳細入力 */}
+                {o.value === "otherOcc" && selected && (
+                  <div className="mt-2 ml-6">
+                    <input
+                      type="text"
+                      value={data.otherOccText || ""}
+                      onChange={e =>
+                        setData(d => ({ ...d, otherOccText: e.target.value }))
+                      }
+                      className="border rounded px-2 py-1 w-full"
+                      placeholder="具体的な職業を入力してください"
+                    />
+                  </div>
+                )}
               </div>
-              {o.value === "worker" && value === "worker" && (
-                <RadioGroup value={data.workerType||""} onValueChange={wt=>setData(d=>({...d,workerType:wt}))} className="mt-2 ml-6 space-y-1">
-                  {[
-                    { value: "company", label: "会社員等・被雇用者" },
-                    { value: "self", label: "自営業、自由業" },
-                    { value: "teacher", label: "教員、保母等" },
-                    { value: "service", label: "接客業等" },
-                    { value: "medical", label: "医療従事者・介護師等" },
-                    { value: "otherWorker", label: "その他" }
-                  ].map(opt => (
-                    <div key={opt.value} className="flex items-center space-x-2">
-                      <RadioGroupItem value={opt.value} id={`wt-${opt.value}`} />
-                      <Label htmlFor={`wt-${opt.value}`}>{opt.label}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              )}
-              {o.value === "otherOcc" && value === "otherOcc" && (
-                <Input className="mt-2 ml-6" placeholder="その他を入力" value={data.otherOccText||""} onChange={e=>setData(d=>({...d,otherOccText:e.target.value}))} />
-              )}
-            </div>
-          ))}
-        </RadioGroup>
+            );
+          })}
+        </div>
       </div>
     );
   }
@@ -451,7 +504,18 @@ export default function TbQuestionnaireWizard() {
       </div>
       <motion.div key={step} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
         <Card className="shadow"><CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">{cur.title}</h2>
+            {cur.id === 'health' ? (
+              <h2 className="text-xl font-semibold mb-4">
+                {cur.title} (
+                {patientReasons.includes(formData.requestReason)
+                  ? '患者'
+                  : '接触者'}
+                )
+              </h2>
+            ) : (
+              <h2 className="text-xl font-semibold mb-4">{cur.title}</h2>
+            )}
+
           {cur.fields.map(f => <Field key={f.id} field={f} data={formData} setData={setFormData} />)}
         </CardContent></Card>
       </motion.div>
