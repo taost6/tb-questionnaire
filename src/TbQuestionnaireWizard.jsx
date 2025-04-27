@@ -220,91 +220,109 @@ const sections = [
         label: 'この２週間以上「せき」や「たん」が続いていますか？',
         type: 'radio',
         options: [
-          { value: 'yes',     label: '① はい' },
-          { value: 'no',      label: '② いいえ' },
-          { value: 'unknown', label: '③ わからない' },
+          { value: 'yes',     label: 'はい' },
+          { value: 'no',      label: 'いいえ' },
+          { value: 'unknown', label: 'わからない' },
         ],
         conditional: d => !patientReasons.includes(d.requestReason),
+        children: [
+          {
+            id: 'nonPatientSince',
+            label: '症状はいつごろから生じていますか？',
+            type: 'radio',
+            options: [
+              { value: 'lt1m',   label: '１か月未満' },
+              { value: '1to2m',  label: '１か月以上２か月未満' },
+              { value: '2to3m',  label: '２か月以上３か月未満' },
+              { value: '3to6m',  label: '３か月以上６か月未満' },
+              { value: 'gt6m',   label: '６か月以上' },
+              { value: 'unk',    label: 'よくわからない' },
+            ],
+            conditionalValue: 'yes'
+          },
+          {
+            id: 'nonPatientTreated',
+            label: 'その「せき」や「たん」について、検査や治療を受けていますか？',
+            type: 'radio',
+            options: [
+              { value: 'yes',     label: 'はい' },
+              { value: 'no',      label: 'いいえ' },
+              { value: 'unknown', label: 'わからない' },
+            ],
+            conditionalValue: 'yes'
+          },
+          {
+            id: 'respiratoryHistory',
+            label: '過去２年間で、喘息など、何らかの呼吸器疾患といわれたことがありますか？',
+            type: 'checkbox',
+            options: [
+              { value: 'asthma',       label: '喘息' },
+              { value: 'infiltration', label: '肺浸潤' },
+              { value: 'pleuritis',    label: '胸膜炎' },
+              { value: 'peritonitis',  label: '肋膜炎' },
+              { value: 'lymph',        label: '頚部リンパ節結核等' },
+              { value: 'other',        label: 'その他', inputs: ['otherRespiratory'] },
+            ],
+            conditionalValue: 'yes',
+            children: [
+              {
+                id: 'otherRespiratory',
+                label: '',
+                placeholder: "具体的に",
+                type: 'text',
+                conditionalValue: 'other'
+              }
+            ]      
+          }
+        ]
       },
-      {
-        id: 'nonPatientSince',
-        label: '症状はいつごろから生じていますか？',
-        type: 'radio',
-        options: [
-          { value: 'lt1m', label: '① １か月未満' },
-          { value: '1to2m', label: '② １か月以上２か月未満' },
-          { value: '2to3m', label: '③ ２か月以上３か月未満' },
-          { value: '3to6m', label: '④ ３か月以上６か月未満' },
-          { value: 'gt6m',   label: '⑤ ６か月以上' },
-          { value: 'unk',    label: '⑥ よくわからない' },
-        ],
-        conditional: d =>
-          !patientReasons.includes(d.requestReason) && d.cough2w === 'yes',
-      },
-      {
-        id: 'nonPatientTreated',
-        label: 'その「せき」や「たん」について、治療や検査を受けていますか？',
-        type: 'radio',
-        options: [
-          { value: 'yes',     label: '① はい' },
-          { value: 'no',      label: '② いいえ' },
-          { value: 'unknown', label: '③ わからない' },
-        ],
-        conditional: d =>
-          !patientReasons.includes(d.requestReason) && d.cough2w === 'yes',
-      },
-      {
-        id: 'respiratoryHistory',
-        label: '過去２年間で、「ぜんそく」など、何らかの呼吸器疾患といわれたことがありますか？',
-        type: 'checkbox',
-        options: [
-          { value: 'infiltration', label: '① 肺浸潤' },
-          { value: 'pleuritis',    label: '② 胸膜炎' },
-          { value: 'peritonitis',   label: '③ 肋膜炎' },
-          { value: 'lymph',         label: '④ 頚部リンパ節結核等' },
-          { value: 'other',         label: '⑤ その他', inputs: ['otherRespiratory'] },
-          { value: 'unk',           label: '⑥ わからない' },
-        ],
-        conditional: d =>
-          !patientReasons.includes(d.requestReason) && d.cough2w === 'yes',
-      },
+
       {
         id: 'regularCheckup',
         label: '健康診断を定期的に受けていますか？',
         type: 'radio',
         options: [
-          { value: 'annual',   label: '① 毎年受けている' },
-          { value: 'fewYear',  label: '② 数年に一度受けている' },
-          { value: 'gt3year',  label: '③ ３年間以上受けていない' },
-          { value: 'other',    label: '④ その他・わからない' },
+          { value: 'annual',   label: '毎年受けている' },
+          { value: 'fewYear',  label: '数年に一度受けている' },
+          { value: 'gt3year',  label: '３年間以上受けていない' },
+          { value: 'other',    label: 'その他・わからない' },
         ],
         conditional: d => !patientReasons.includes(d.requestReason),
-      },
-      {
-        id: 'checkupFollow',
-        label: '検診にて要精密検査を指示されていますか？',
-        type: 'radio',
-        options: [
-          { value: 'none',    label: '① 指示されていない' },
-          { value: 'notDone', label: '② 指示を受けたが受診していない' },
-          { value: 'done',    label: '③ 指示を受け受診している' },
-          { value: 'other',   label: '④ その他・わからない' },
-        ],
-        conditional: d =>
-          !patientReasons.includes(d.requestReason) &&
-          ['annual','fewYear','gt3year'].includes(d.regularCheckup),
+        children: [
+          {
+            id: 'checkupFollow',
+            label: '検診にて要精密検査を指示されていますか？',
+            type: 'radio',
+            options: [
+              { value: 'none',    label: '指示されていない' },
+              { value: 'notDone', label: '指示を受けたが受診していない' },
+              { value: 'done',    label: '指示を受け受診している' },
+              { value: 'other',   label: 'その他・わからない' },
+            ],
+            // ①～③を選んだときだけ表示
+            conditional: d => ['annual','fewYear','gt3year'].includes(d.regularCheckup)
+          }
+        ]
       },
       {
         id: 'tbMedication',
         label: '現在、結核の治療薬を飲んでいますか？',
         type: 'radio',
         options: [
-          { value: 'no',    label: '① 飲んでいない' },
-          { value: 'planned', label: '② 飲むことになっている' },
-          { value: 'yes',   label: '③ 飲んでいる' },
-          { value: 'other', label: '④ その他・わからない' },
+          { value: 'no',    label: '飲んでいない' },
+          { value: 'planned', label: '飲むことになっている' },
+          { value: 'yes',   label: '飲んでいる' },
+          { value: 'other', label: 'その他・わからない' },
         ],
         conditional: d => !patientReasons.includes(d.requestReason),
+        children: [
+          { id:    'tbMedicationReason',
+            label: '理由を教えて下さい',
+            type:  'text',
+            placeholder: '例: 予防内服',
+            conditional: d => ['planned','yes'].includes(d.tbMedication)
+          }
+        ]
       },
 
       // --- 全員に聴取 ---
@@ -557,13 +575,68 @@ function Field({ field, data, setData }) {
         </div>
       );
 
-
     case "check": return (
       <div className="mb-4 flex items-center space-x-2 justify-end">
         <Checkbox id={field.id} checked={!!data[field.id]} onCheckedChange={v=>setData(d=>({...d,[field.id]:v}))} />
         <Label htmlFor={field.id} className="font-semibold">{field.label}</Label>
       </div>
     );
+
+    case "checkbox":
+      return (
+        <div className="mb-4">
+          <Label className={labelCls}>{field.label}</Label>
+          <div className="ml-4">
+
+            {field.options.map(opt => {
+              const checked = (data[field.id] || []).includes(opt.value)
+              // ユニークな id を生成
+              const inputId = `${field.id}-${opt.value}`
+
+              return (
+                <div key={opt.value} className="mb-1">
+                  {/* チェック＋ラベルだけを行内配置 */}
+                  <div className="flex items-center">
+                    <Checkbox
+                      id={inputId}
+                      checked={checked}
+                      onCheckedChange={v => {
+                        const arr = data[field.id] || []
+                        setData(d => ({
+                          ...d,
+                          [field.id]: v
+                            ? [...arr, opt.value]
+                            : arr.filter(x => x !== opt.value)
+                        }))
+                      }}
+                      className="mr-2"
+                    />
+                    <label htmlFor={inputId} className="select-none">
+                      {opt.label}
+                    </label>
+                  </div>
+
+                  {/* チェック時のみ、別行に ml-4 で字下げ */}
+                  {checked && field.children?.map(child => {
+                    if (child.conditionalValue !== opt.value) return null
+                    if (
+                      !data[field.id]?.includes(child.conditionalValue) ||
+                      (child.conditional && !child.conditional(data))
+                    ) return null
+
+                    return (
+                      <div key={child.id} className="ml-8">
+                        <Field field={child} data={data} setData={setData} />
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+          })}
+        </div>
+      </div>
+      );
+      
     case "textarea": return (
       <div className="mb-4">
         <Label className={labelCls} htmlFor={field.id}>{field.label}</Label>
