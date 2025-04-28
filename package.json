@@ -19,6 +19,9 @@
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7"
   },
+  "overrides": {
+    "vite": "4.4.9"
+  },
   "devDependencies": {
     "@vitejs/plugin-react": "^3.2.0",
     "autoprefixer": "^10.4.18",
