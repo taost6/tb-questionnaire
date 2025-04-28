@@ -299,7 +299,6 @@ const sections = [
           }
         ]
       },
-
       {
         id: 'regularCheckup',
         label: '健康診断を定期的に受けていますか？',
@@ -322,7 +321,6 @@ const sections = [
               { value: 'done',    label: '指示を受け受診している' },
               { value: 'other',   label: 'その他・わからない' },
             ],
-            // ①～③を選んだときだけ表示
             conditional: d => ['annual','fewYear'].includes(d.regularCheckup)
           }
         ]
@@ -373,7 +371,6 @@ const sections = [
               { value: 'tuber', label: 'ツベルクリン反応検査が陽性だったため' },
               { value: 'other', label: 'その他の理由' },
             ],
-            // bcg === 'no' のときだけ表示
             conditionalValue: 'no',
             children: [
               {
@@ -381,7 +378,6 @@ const sections = [
                 label: '理由をご記入ください',
                 type: 'text',
                 placeholder: '例: 手帳を紛失したため',
-                // 上の radio で 'other' を選んだときだけ表示
                 conditionalValue: 'other'
               }
             ]
@@ -398,7 +394,6 @@ const sections = [
           { value: 'other',      label: 'その他' },
         ],
         children: [
-          // 「② 通院中・入院歴あり」のときに出すチェックボックス群
           {
             id: 'comorbidities',
             label: '当てはまるものを全て選んで下さい',
@@ -419,12 +414,10 @@ const sections = [
                 label: '',
                 type: 'text',
                 placeholder: '具体的に',
-                // comorbidities に 'other' が含まれるときだけ表示
                 conditionalValue: 'other'
               }
             ]  
           },
-          // 「③ その他」を選んだときに出す自由記述欄
           {
             id: 'otherHealthStatus',
             label: '',
@@ -455,36 +448,34 @@ const sections = [
          { value: "other",       label: "その他" }
        ],
        children: [
-      {
-        id: 'withFamilyNote',
-        type: 'note',
-        label: '次のページにて、同居の方々の名前を教えて下さい',
-        conditionalValue: 'withFamily'
-      },
-      {
-           id: "facilityName",
-           type: "text",
-           label: "",
-           placeholder: "施設名を記入してください",
-           conditionalValue: "facility"
-         },
-         {
-          id: "hospitalName",
-          type: "text",
-          label: "",
-          placeholder: "医療期間名を記入してください",
-          conditionalValue: "hospital"
-        },
-        {
-           id: "otherLivingSituation",
-           type: "text",
-           placeholder: "具体的に記入してください",
-           conditionalValue: "other"
-         }
+          {
+            id: 'withFamilyNote',
+            type: 'note',
+            label: '次のページにて、同居の方々の名前を教えて下さい',
+            conditionalValue: 'withFamily'
+          },
+          {
+            id: "facilityName",
+            type: "text",
+            label: "",
+            placeholder: "施設名を記入してください",
+            conditionalValue: "facility"
+          },
+          {
+            id: "hospitalName",
+            type: "text",
+            label: "",
+            placeholder: "医療期間名を記入してください",
+            conditionalValue: "hospital"
+          },
+          {
+            id: "otherLivingSituation",
+            type: "text",
+            placeholder: "具体的に記入してください",
+            conditionalValue: "other"
+          }
        ]
      },
-
-     // 家族や同居人の結核罹患
      {
        id: "familyTb",
        label: "家族や同居人で、過去２年以内に結核にかかった人はいますか？",
@@ -504,8 +495,6 @@ const sections = [
          }
        ]
      },
-
-     // 海外在住経験
      {
        id: "overseaStay",
        label: "過去3年以内に、通算して半年以上、日本国外に住んでいたことがありますか？",
@@ -531,8 +520,6 @@ const sections = [
          }
        ]
      },
-
-     // 利用交通機関
      {
        id: "transport",
        label: "よく利用する交通機関はありますか？",
@@ -548,11 +535,203 @@ const sections = [
            id: "transportRoute",
            type: "text",
            label: "経路等：",
-           placeholder: "例：札幌→旭川"
+           placeholder: "例：札幌⇔旭川"
          }
        ]
-     }
-   ]
+     },
+
+    // ─────────────────────────────────────────────────
+    // 属性別質問
+    // ─────────────────────────────────────────────────
+     {
+      id: "studentTutoring",
+      label: "塾・予備校に通っていますか？",
+      type: "text",
+      placeholder: "学校名・週〇回等"
+    },
+    {
+      id: "studentLessons",
+      label: "習い事に通っていますか？",
+      type: "text",
+      placeholder: "施設名・週〇回等"
+    },
+    {
+      id: "adultShoppingStores",
+      label: "よく買い物に行く店はありますか？",
+      type: "text",
+      placeholder: "店名・週〇回等"
+    },
+    {
+      id: "adultRestaurants",
+      label: "よく食事に行く飲食店はありますか？",
+      type: "text",
+      placeholder: "店名・週〇回等"
+    },
+    {
+      id: "adultPartTime",
+      label: "アルバイトしている先があれば、教えて下さい",
+      type: "text",
+      placeholder: "店名・週〇回等"
+    },
+    {
+      id: "adultActivities",
+      label: "サークル活動やボランティア活動はしていますか？",
+      type: "text",
+      placeholder: "組織名・週〇回等"
+    },
+    {
+      id: "adultFacilities",
+      label: "よく利用する店舗・施設を選んで下さい",
+      type: "checkbox",
+      options: [
+        { value: "karaoke",     label: "カラオケ" },
+        { value: "gameCenter",  label: "ゲームセンター" },
+        { value: "netCafe",     label: "ネットカフェ・まんが喫茶" },
+        { value: "pachinko",    label: "パチンコ・麻雀店" },
+        { value: "raceTrack",   label: "競馬場・競輪場" },
+        { value: "izakaya",     label: "居酒屋・バー・キャバクラ等" },
+        { value: "sauna",       label: "サウナ・銭湯" },
+        { value: "capsuleHotel",label: "カプセルホテル" },
+        { value: "simpleInn",   label: "簡易宿泊所" }
+      ],
+      children: [
+        {
+          id: "karaokeName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "karaoke"
+        },
+        {
+          id: "gameCenterName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "gameCenter"
+        },
+        {
+          id: "netCafeName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "netCafe"
+        },
+        {
+          id: "pachinkoName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "pachinko"
+        },
+        {
+          id: "raceTrackName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "raceTrack"
+        },
+        {
+          id: "izakayaName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "izakaya"
+        },
+        {
+          id: "saunaName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "sauna"
+        },
+        {
+          id: "capsuleHotelName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "capsuleHotel"
+        },
+        {
+          id: "simpleInnName",
+          type: "text",
+          label: "",
+          placeholder: "店名・所在地・訪問頻度等",
+          conditionalValue: "simpleInn"
+        },
+     ]
+    },
+    {
+      id: "adultOtherPlaces",
+      label: "スポーツ施設等、上記以外に月１回以上行くような場所があれば教えて下さい",
+      type: "text",
+      placeholder: "施設名・週〇回等"
+    },
+    {
+      id: "adultLiveEvents",
+      label: "ライブやコンサート等、大勢の人が集まるような機会への参加があれば、教えて下さい",
+      type: "list",
+      placeholder: "例: コンサート名・場所や参加回数など"
+    },
+    {
+      id: "elderlyShortStay",
+      label: "ショートステイ等、入所を伴う施設を利用していますか？",
+      type: "radio",
+      options: [
+        { value: "yes", label: "あり" },
+        { value: "no",  label: "なし" }
+      ],
+      children: [
+        {
+          id: "elderlyShortStayDetail",
+          label: "",
+          type: "text",
+          placeholder: "施設名・所在地等",
+          conditionalValue: "yes"
+        }
+      ]
+    },
+    {
+      id: "elderlyDayService",
+      label: "デイサービス等、利用している施設はありますか？",
+      type: "radio",
+      options: [
+        { value: "yes", label: "あり" },
+        { value: "no",  label: "なし" }
+      ],
+      children: [
+        {
+          id: "elderlyDayServiceDetail",
+          label: "",
+          type: "text",
+          placeholder: "施設名・所在地等",
+          conditionalValue: "yes"
+        }
+      ]
+    },
+    {
+      id: "foreignSchool",
+      label: "日本語学校や専門学校等、日本で通っていた学校があれば、教えて下さい",
+      type: "text",
+      placeholder: "学校名・所在地等"
+    },
+    {
+      id: "foreignGatherings",
+      label: "同郷の方々が集まるような集会等があれば、教えて下さい",
+      type: "text",
+      placeholder: "名称・所在地等"
+    },
+    {
+      id: "vulnerableHomelessSpots",
+      label: "よく野宿する場所があれば、教えて下さい",
+      type: "text"
+    },
+    {
+      id: "vulnerableFacilities",
+      label: "よく利用する福祉施設・職業安定所・障害者施設等があれば、教えて下さい",
+      type: "text",
+      placeholder: "名称・所在地等"
+    }
+    ]
   },
 
   { id: "contacts", title: "V. 接触者", fields: [
