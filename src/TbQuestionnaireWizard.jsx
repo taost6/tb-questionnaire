@@ -440,7 +440,7 @@ const sections = [
   {
     id: "lifestyle",
     title: "IV. ライフスタイル",
-   fields: [
+    fields: [
      // 住まい・生活状況
      {
        id: "livingSituation",
@@ -448,21 +448,34 @@ const sections = [
        type: "radio",
        options: [
          { value: "alone",       label: "単身生活" },
-         { value: "withFamily",  label: "家族と同居" },
+         { value: "withFamily",  label: "家族や知人と同居" },
          { value: "facility",    label: "老健・福祉施設等共同生活" },
          { value: "hospital",    label: "医療機関入院中" },
          { value: "homeless",    label: "住所不定またはホームレス経験がある(過去数年以内)" },
          { value: "other",       label: "その他" }
        ],
        children: [
-         {
+      {
+        id: 'withFamilyNote',
+        type: 'note',
+        label: '次のページにて、同居の方々の名前を教えて下さい',
+        conditionalValue: 'withFamily'
+      },
+      {
            id: "facilityName",
            type: "text",
-           label: "施設名称を教えて下さい",
+           label: "",
            placeholder: "施設名を記入してください",
-           conditionalValue: ["facility", "hospital"]
+           conditionalValue: "facility"
          },
          {
+          id: "hospitalName",
+          type: "text",
+          label: "",
+          placeholder: "医療期間名を記入してください",
+          conditionalValue: "hospital"
+        },
+        {
            id: "otherLivingSituation",
            type: "text",
            placeholder: "具体的に記入してください",
@@ -485,7 +498,7 @@ const sections = [
          {
            id: "familyTbDetail",
            type: "text",
-           label: "どなたでしょうか",
+           label: "お名前を教えてください",
            placeholder: "氏名を入力",
            conditionalValue: "yes"
          }
