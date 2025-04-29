@@ -77,7 +77,20 @@ const sections = [
       { id: "guardian", label: "保護者・記入者氏名", type: "text", conditional: d => d.proxyFlag },
       { id: "address", label: "現住所", type: "text" },
       { id: "phone", label: "電話番号", type: "text" },
-      { id: "nationality", label: "国籍", type: "radio-nat" },
+      { id: "nationality", label: "国籍", type: "radio", options: [
+        { value: "japan", label: "日本国籍" },
+        { value: "foreigner", label: "外国籍" },
+        { value: "other", label: "その他・わからない" },
+        ],
+        children: [
+          {
+            id: "nationalityDetail",
+            label: "国籍を教えて下さい",
+            type: "text",
+            conditionalValue: "foreigner"
+          }
+        ]
+      },
       { id: "occupation", label: "職業区分", type: "radio", options: [
         { value: "infant", label: "乳幼児" },
         { value: "schoolChild", label: "小中学生等学童" },
@@ -547,37 +560,43 @@ const sections = [
       id: "studentTutoring",
       label: "塾・予備校に通っていますか？",
       type: "text",
-      placeholder: "学校名・週〇回等"
+      placeholder: "学校名・週〇回等",
+      conditional: d => Number(d.age) >= 6 && Number(d.age) <= 18
     },
     {
       id: "studentLessons",
       label: "習い事に通っていますか？",
       type: "text",
-      placeholder: "施設名・週〇回等"
+      placeholder: "施設名・週〇回等",
+      conditional: d => Number(d.age) >= 6 && Number(d.age) <= 18
     },
     {
       id: "adultShoppingStores",
       label: "よく買い物に行く店はありますか？",
       type: "text",
-      placeholder: "店名・週〇回等"
+      placeholder: "店名・週〇回等",
+      conditional: d => Number(d.age) >= 18 && Number(d.age) <= 75
     },
     {
       id: "adultRestaurants",
       label: "よく食事に行く飲食店はありますか？",
       type: "text",
-      placeholder: "店名・週〇回等"
+      placeholder: "店名・週〇回等",
+      conditional: d => Number(d.age) >= 18 && Number(d.age) <= 75
     },
     {
       id: "adultPartTime",
       label: "アルバイトしている先があれば、教えて下さい",
       type: "text",
-      placeholder: "店名・週〇回等"
+      placeholder: "店名・週〇回等",
+      conditional: d => Number(d.age) >= 18 && Number(d.age) <= 75
     },
     {
       id: "adultActivities",
       label: "サークル活動やボランティア活動はしていますか？",
       type: "text",
-      placeholder: "組織名・週〇回等"
+      placeholder: "組織名・週〇回等",
+      conditional: d => Number(d.age) >= 18 && Number(d.age) <= 75
     },
     {
       id: "adultFacilities",
@@ -658,19 +677,22 @@ const sections = [
           placeholder: "店名・所在地・訪問頻度等",
           conditionalValue: "simpleInn"
         },
-     ]
+     ],
+     conditional: d => Number(d.age) >= 18 && Number(d.age) <= 75
     },
     {
       id: "adultOtherPlaces",
       label: "スポーツ施設等、上記以外に月１回以上行くような場所があれば教えて下さい",
       type: "text",
-      placeholder: "施設名・週〇回等"
+      placeholder: "施設名・週〇回等",
+      conditional: d => Number(d.age) >= 18 && Number(d.age) <= 75
     },
     {
       id: "adultLiveEvents",
       label: "ライブやコンサート等、大勢の人が集まるような機会への参加があれば、教えて下さい",
       type: "list",
-      placeholder: "例: コンサート名・場所や参加回数など"
+      placeholder: "例: コンサート名・場所や参加回数など",
+      conditional: d => Number(d.age) >= 18 && Number(d.age) <= 75
     },
     {
       id: "elderlyShortStay",
@@ -688,7 +710,8 @@ const sections = [
           placeholder: "施設名・所在地等",
           conditionalValue: "yes"
         }
-      ]
+      ],
+      conditional: d => Number(d.age) >= 70
     },
     {
       id: "elderlyDayService",
@@ -706,30 +729,35 @@ const sections = [
           placeholder: "施設名・所在地等",
           conditionalValue: "yes"
         }
-      ]
+      ],
+      conditional: d => Number(d.age) >= 70
     },
     {
       id: "foreignSchool",
       label: "日本語学校や専門学校等、日本で通っていた学校があれば、教えて下さい",
       type: "text",
-      placeholder: "学校名・所在地等"
+      placeholder: "学校名・所在地等",
+      conditional: d => ["foreigner"].includes(d.nationality)
     },
     {
       id: "foreignGatherings",
       label: "同郷の方々が集まるような集会等があれば、教えて下さい",
       type: "text",
-      placeholder: "名称・所在地等"
+      placeholder: "名称・所在地等",
+      conditional: d => ["foreigner"].includes(d.nationality)
     },
     {
       id: "vulnerableHomelessSpots",
       label: "よく野宿する場所があれば、教えて下さい",
-      type: "text"
+      type: "text",
+      conditional: d => ["homeless"].includes(d.livingSituation)
     },
     {
       id: "vulnerableFacilities",
       label: "よく利用する福祉施設・職業安定所・障害者施設等があれば、教えて下さい",
       type: "text",
-      placeholder: "名称・所在地等"
+      placeholder: "名称・所在地等",
+      conditional: d => ["homeless"].includes(d.livingSituation)
     }
     ]
   },
