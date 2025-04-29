@@ -1184,12 +1184,27 @@ export default function TbQuestionnaireWizard() {
     workSchoolContactsList: [""],
     otherRegularContactsList: [""],
   });
+  const [showData, setShowData] = useState(false);
+
+  const handleNext = () => {
+  // setPage(p => p + 1);
+    window.scrollTo(0, 0);
+    setStep(s=>Math.min(s+1,sections.length-1))
+  };
+
+  const handleSubmit = () => {
+    // 送信処理
+    console.log("送信データ",formData);
+    document.getElementById('formData').style.display = 'block';
+    setShowData(true);
+  };
+
   const cur = sections[step];
   const progress = ((step + 1) / sections.length) * 100;
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">結核問診フォーム</h1>
+      <h1 className="text-2xl font-bold mb-4">結核問診票 / Tuberculosis Questionnaire</h1>
       <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
         <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${progress}%` }} />
       </div>
@@ -1213,11 +1228,12 @@ export default function TbQuestionnaireWizard() {
       <div className="flex justify-between mt-6">
         <Button variant="outline" onClick={() => setStep(s => Math.max(s - 1, 0))} disabled={step===0}>戻る</Button>
         {step<sections.length-1?
-          <Button onClick={()=>setStep(s=>Math.min(s+1,sections.length-1))}>次へ</Button>
-          :<Button onClick={()=>console.log("送信データ",formData)}>送信 (console)</Button>
+          <Button onClick={handleNext}>次へ</Button>
+          :<Button onClick={handleSubmit}>提出</Button>
         }
       </div>
-      <pre className="mt-6 text-xs bg-gray-100 p-2 rounded leading-tight overflow-x-auto"><code>{JSON.stringify(formData,null,2)}</code></pre>
+      <pre className="mt-6 text-xs bg-gray-100 p-2 rounded leading-tight overflow-x-auto" id="formData"
+        style={{ display: 'none', background: '#f7f7f7', padding: '1em' }}><code>{JSON.stringify(formData,null,2)}</code></pre>
     </div>
   );
 }
