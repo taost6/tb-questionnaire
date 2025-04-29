@@ -27,7 +27,7 @@ jobs:
           echo "=== ENV vars ==="
           env | sort
 
-      - run: npm ci
+      - run: npm install
       - run: npx vite build
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
