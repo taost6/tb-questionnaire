@@ -85,8 +85,9 @@ const sections = [
         children: [
           {
             id: "nationalityDetail",
-            label: "国籍を教えて下さい",
+            label: "",
             type: "text",
+            placeholder: "国籍を教えて下さい",
             conditionalValue: "foreigner"
           }
         ]
@@ -162,22 +163,7 @@ const sections = [
             conditionalValue: "otherOcc"
           }
         ]
-    },
-
-      // to be removed
-      /*
-      { id: "occupation_old", label: "職業区分old", type: "radio", options: [
-        { value: "infant", label: "乳幼児" },
-        { value: "schoolChild", label: "小中学生等学童" },
-        { value: "highStudent", label: "高校生以上の生徒学生等" },
-        { value: "worker", label: "勤労者" },
-        { value: "trainee", label: "技能実習生" },
-        { value: "houseWork", label: "家事従事者" },
-        { value: "unemployed", label: "無職" },
-        { value: "otherOcc", label: "その他・分からない" },
-      ]},
-      { id: "workplaceName", label: "通学先・勤務先・技能実習先の名称", type: "text", conditional: d => !!d.occupation_old },
-      */
+      },
 
       {
         id: "requestReason",
@@ -865,101 +851,6 @@ function Field({ field, data, setData }) {
   const set = v => setData(d => ({ ...d, [field.id]: v }));
   const labelCls = "block mb-1 font-semibold";
   const value = data[field.id] || field.default || "";
-
-  // to be removed
-  /*
-  // Inline occupation_oldand otherOcc
-  if (field.id === "occupation_old") {
-    return (
-      <div className="mb-6">
-        <Label className={labelCls} htmlFor="occupation_old">
-        {field.label}
-        </Label>
-        <div className="space-y-2 ml-4">
-          {field.options.map(o => {
-            const selected = data.occupation_old === o.value;
-            return (
-              <div key={o.value} className="mb-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="occupation_old"
-                    value={o.value}
-                    checked={selected}
-                    onChange={e => setData(d => ({ ...d, occupation_old: e.target.value }))}
-                  />
-                  <span className="ml-2">{o.label}</span>
-                </label>
-
-                //「勤労者」を選択時：ネストされたラジオ群
-                {o.value === "worker" && selected && (
-                  <div className="mt-2 ml-6 space-y-1">
-                    {[
-                      { value: "company", label: "会社員等・被雇用者" },
-                      { value: "self",    label: "自営業、自由業" },
-                      { value: "teacher", label: "教員、保母等" },
-                      { value: "service", label: "接客業等" },
-                      { value: "medical", label: "医療従事者・介護師等" },
-                      { value: "otherWorker", label: "その他" },
-                    ].map(opt => {
-                      const wtSelected = data.workerType === opt.value;
-                      return (
-                        <div key={opt.value} className="mb-1">
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="workerType"
-                              value={opt.value}
-                              checked={wtSelected}
-                              onChange={e =>
-                                setData(d => ({ ...d, workerType: e.target.value }))
-                              }
-                            />
-                            <span className="ml-2">{opt.label}</span>
-                          </label>
-
-                          // ネスト内「その他」選択時：詳細入力
-                          {opt.value === "otherWorker" && wtSelected && (
-                            <div className="mt-1 ml-8">
-                              <input
-                                type="text"
-                                value={data.otherWorkerText || ""}
-                                onChange={e =>
-                                  setData(d => ({ ...d, otherWorkerText: e.target.value }))
-                                }
-                                className="border rounded px-2 py-1 w-full"
-                                placeholder="具体的な職種を入力してください"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                // 「その他・分からない」を選択時：詳細入力
-                {o.value === "otherOcc" && selected && (
-                  <div className="mt-2 ml-6">
-                    <input
-                      type="text"
-                      value={data.otherOccText || ""}
-                      onChange={e =>
-                        setData(d => ({ ...d, otherOccText: e.target.value }))
-                      }
-                      className="border rounded px-2 py-1 w-full"
-                      placeholder="ご説明ください"
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-  */
 
   switch(field.type) {
     case "text": return (
