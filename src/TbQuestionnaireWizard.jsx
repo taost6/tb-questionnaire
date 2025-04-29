@@ -91,6 +91,7 @@ const sections = [
           }
         ]
       },
+
       { id: "occupation", label: "職業区分", type: "radio", options: [
         { value: "infant", label: "乳幼児" },
         { value: "schoolChild", label: "小中学生等学童" },
@@ -100,8 +101,83 @@ const sections = [
         { value: "houseWork", label: "家事従事者" },
         { value: "unemployed", label: "無職" },
         { value: "otherOcc", label: "その他・分からない" },
+        ],
+        children: [
+          {
+            id: "placeNurseryName",
+            label: "",
+            type: "text",
+            placeholder: "通園先名称",
+            conditionalValue: "infant"
+          },
+          {
+            id: "placeSchoolName",
+            label: "",
+            type: "text",
+            placeholder: "通学先名称",
+            conditional: d => ["schoolChild","highStudent"].includes(d.occupation)
+          },
+          {
+            id: 'placeWorkType',
+            label: '',
+            type: 'radio',
+            options: [
+              { value: "company", label: "会社員等・被雇用者" },
+              { value: "self",    label: "自営業、自由業" },
+              { value: "teacher", label: "教員、保母等" },
+              { value: "service", label: "接客業等" },
+              { value: "medical", label: "医療従事者・介護師等" },
+              { value: "otherWorker", label: "その他" },
+            ],
+            conditional: d => ['worker'].includes(d.occupation),
+            children: [
+              {
+                id: "placeWorkerName",
+                label: "",
+                type: "text",
+                placeholder: "勤務先名称",
+                conditional: d => ["company","teacher","service","medical"].includes(d.placeWorkType)
+              },
+              {
+                id: "placeWorkerCategory",
+                label: "",
+                type: "text",
+                placeholder: "具体的な職種を入力して下さい",
+                conditionalValue: "otherWorker"
+              }
+            ]    
+          },
+          {
+            id: "placeTrainName",
+            label: "",
+            type: "text",
+            placeholder: "技能実習先施設",
+            conditionalValue: "trainee"
+          },
+          {
+            id: "otherOccNote",
+            label: "",
+            type: "text",
+            placeholder: "ご説明ください",
+            conditionalValue: "otherOcc"
+          }
+        ]
+    },
+
+      // to be removed
+      /*
+      { id: "occupation_old", label: "職業区分old", type: "radio", options: [
+        { value: "infant", label: "乳幼児" },
+        { value: "schoolChild", label: "小中学生等学童" },
+        { value: "highStudent", label: "高校生以上の生徒学生等" },
+        { value: "worker", label: "勤労者" },
+        { value: "trainee", label: "技能実習生" },
+        { value: "houseWork", label: "家事従事者" },
+        { value: "unemployed", label: "無職" },
+        { value: "otherOcc", label: "その他・分からない" },
       ]},
-      { id: "workplaceName", label: "通学先・勤務先・技能実習先の名称", type: "text", conditional: d => !!d.occupation },
+      { id: "workplaceName", label: "通学先・勤務先・技能実習先の名称", type: "text", conditional: d => !!d.occupation_old },
+      */
 
       {
         id: "requestReason",
@@ -790,30 +866,32 @@ function Field({ field, data, setData }) {
   const labelCls = "block mb-1 font-semibold";
   const value = data[field.id] || field.default || "";
 
-  // Inline occupation and otherOcc
-  if (field.id === "occupation") {
+  // to be removed
+  /*
+  // Inline occupation_oldand otherOcc
+  if (field.id === "occupation_old") {
     return (
       <div className="mb-6">
-        <Label className={labelCls} htmlFor="occupation">
+        <Label className={labelCls} htmlFor="occupation_old">
         {field.label}
         </Label>
         <div className="space-y-2 ml-4">
           {field.options.map(o => {
-            const selected = data.occupation === o.value;
+            const selected = data.occupation_old === o.value;
             return (
               <div key={o.value} className="mb-2">
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    name="occupation"
+                    name="occupation_old"
                     value={o.value}
                     checked={selected}
-                    onChange={e => setData(d => ({ ...d, occupation: e.target.value }))}
+                    onChange={e => setData(d => ({ ...d, occupation_old: e.target.value }))}
                   />
                   <span className="ml-2">{o.label}</span>
                 </label>
 
-                {/* 「勤労者」を選択時：ネストされたラジオ群 */}
+                //「勤労者」を選択時：ネストされたラジオ群
                 {o.value === "worker" && selected && (
                   <div className="mt-2 ml-6 space-y-1">
                     {[
@@ -840,7 +918,7 @@ function Field({ field, data, setData }) {
                             <span className="ml-2">{opt.label}</span>
                           </label>
 
-                          {/* ネスト内「その他」選択時：詳細入力 */}
+                          // ネスト内「その他」選択時：詳細入力
                           {opt.value === "otherWorker" && wtSelected && (
                             <div className="mt-1 ml-8">
                               <input
@@ -860,7 +938,7 @@ function Field({ field, data, setData }) {
                   </div>
                 )}
 
-                {/* 「その他・分からない」を選択時：詳細入力 */}
+                // 「その他・分からない」を選択時：詳細入力
                 {o.value === "otherOcc" && selected && (
                   <div className="mt-2 ml-6">
                     <input
@@ -881,6 +959,7 @@ function Field({ field, data, setData }) {
       </div>
     );
   }
+  */
 
   switch(field.type) {
     case "text": return (
