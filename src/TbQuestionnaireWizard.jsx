@@ -42,7 +42,7 @@ const sections = [
   },
   { id: "basic", title: "II. 基礎情報", fields: [
       { id: "name", label: "氏名", type: "text" },
-
+      { id: "furiganaName", label: "フリガナ", type: "text" },
       {
         id: "age",
         label: "年齢",
