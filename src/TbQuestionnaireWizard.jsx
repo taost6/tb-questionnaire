@@ -32,6 +32,22 @@ const ageOptions = [
   { value: ">100", label: ">100" },
 ];
 
+const connectDayOptions = [
+  { value: "0", label: "選択" },
+  { value: "1", label: "月曜日" },
+  { value: "2", label: "火曜日" },
+  { value: "3", label: "水曜日" },
+  { value: "4", label: "木曜日" },
+  { value: "5", label: "金曜日" },
+  { value: "6", label: "土曜日" },
+  { value: "7", label: "日曜日" },
+]
+
+const connectTimeOptions = [
+  { value: "0", label: "選択" },
+  ...Array.from(["09", 10, 11, 12, 13, 14, 15, 16, 17, 18], (_, i) => ({ value: String(_), label: `${_}:00` }))
+]
+
 // Form schema definitions
 const sections = [
   { id: "account", title: "I. 連絡先と言語設定", fields: [
@@ -74,9 +90,15 @@ const sections = [
       ]},
       { id: "birthDate", label: "生年月日", type: "date" },
       { id: "proxyFlag", label: "代理人による入力", type: "check" },
+      { id: "guardianRelation", label: "患者との関係", type: "text", conditional: d => d.proxyFlag },
       { id: "guardian", label: "保護者・記入者氏名", type: "text", conditional: d => d.proxyFlag },
+      { id: "guardianAddress", label: "連絡先", type: "text", conditional: d => d.proxyFlag },
       { id: "address", label: "現住所", type: "text" },
-      { id: "phone", label: "電話番号", type: "text" },
+      { id: "zipCode", label: "郵便番号", type: "text" },
+      { id: "phone", label: "電話番号", type: "text", hint: "※連絡しやすい番号を入力してください。" },
+      { id: "connectFlag", label: "連絡がしやすい曜日、時間入力", type:"check" },
+      { id: "connectDay", label: "連絡がしやすい曜日", type: "select", conditional: d => d.connectFlag, default: "0", options: connectDayOptions },
+      { id: "connectTime", label: "連絡がしやすい時間", type: "select", conditional: d => d.connectFlag, default: "0", options: connectTimeOptions },
       { id: "nationality", label: "国籍", type: "radio", options: [
         { value: "japan", label: "日本国籍" },
         { value: "foreigner", label: "外国籍" },
@@ -89,6 +111,19 @@ const sections = [
             type: "text",
             placeholder: "国籍を教えて下さい",
             conditionalValue: "foreigner"
+          },
+          {
+            id: "jpLevel",
+            label: "",
+            type: "select",
+            conditionalValue: "foreigner",
+            options: [
+              { label: "日本語能力", value: "0" },
+              { label: "挨拶程度", value: "1" },
+              { label: "初級", value: "2" },
+              { label: "中級", value: "3" },
+              { label: "上級", value: "4" },
+            ]
           }
         ]
       },
@@ -210,10 +245,21 @@ const sections = [
                 conditionalValue: "otherRelation"
               }
             ]
+          },
+          {
+            id: "checkupType",
+            label: "検診の種類",
+            type: "text",
+            conditional: d => ["diagnosed","possible"].includes(d.requestReason)
+          },
+          {
+            id: "checkupDate",
+            label: "検診日",
+            type: "date",
+            conditional: d => ["diagnosed","possible"].includes(d.requestReason)
           }
         ]
       },
-
     ]
   },
   {
@@ -466,7 +512,7 @@ const sections = [
         options: [
           { value: 'healthy',    label: '健康 (定期的な通院等なし)' },
           { value: 'underTreat', label: '通院中、ないし、入院歴あり' },
-          { value: 'other',      label: 'その他' },
+          { value: 'other',      label: 'その他・わからない' },
         ],
         children: [
           {
@@ -501,7 +547,31 @@ const sections = [
             conditionalValue: 'other'
           }
         ]
-      }
+      },
+      {
+        id: "otherSymptom",
+        label: "その他症状",
+        placeholder: "",
+        type: "text"
+      },
+      {
+        id: "height",
+        label: "身⾧",
+        type: "text",
+        placeholder: "例: 170Cm"
+      },
+      {
+        id: "weight",
+        label: "体重",
+        type: "text",
+        placeholder: "例: 約50kg"
+      },
+      {
+        id: "oralMedication",
+        label: "内服薬",
+        placeholder: "",
+        type: "text"
+      },
     ],
   },
 
@@ -519,7 +589,6 @@ const sections = [
          { value: "withFamily",  label: "家族や知人と同居" },
          { value: "facility",    label: "老健・福祉施設等共同生活" },
          { value: "hospital",    label: "医療機関入院中" },
-         { value: "homeless",    label: "住所不定またはホームレス経験がある(過去数年以内)" },
          { value: "other",       label: "その他" }
        ],
        children: [
@@ -548,8 +617,20 @@ const sections = [
             type: "text",
             placeholder: "具体的に記入してください",
             conditionalValue: "other"
-          }
+          },
+
        ]
+     },
+     {
+        id: "homeLess",
+        type: "check",
+        label: "ホームレス経験がある(過去数年以内)",
+        conditional: ()=>true
+     },
+     {
+      id: "smokingDrinking",
+      label: "喫煙/飲酒習慣",
+      type: "text"
      },
      {
        id: "familyTb",
@@ -576,7 +657,8 @@ const sections = [
        type: "radio",
        options: [
          { value: "yes", label: "はい" },
-         { value: "no",  label: "いいえ" }
+         { value: "no",  label: "いいえ" },
+         { value: "unkown",  label: "わからない" },
        ],
        children: [
          {
@@ -855,7 +937,7 @@ function Field({ field, data, setData }) {
   switch(field.type) {
     case "text": return (
       <div className="mb-4">
-        <Label className={labelCls} htmlFor={field.id}>{field.label}</Label>
+        <Label className={labelCls} htmlFor={field.id} >{field.label}{field.hint ? <span className="text-xs">({field.hint})</span> : ""}</Label>
         <Input id={field.id} className="ml-4" value={data[field.id]||""} placeholder={field.placeholder||""} onChange={e=>setData(d=>({...d,[field.id]:e.target.value}))} />
       </div>
     );
@@ -941,7 +1023,7 @@ function Field({ field, data, setData }) {
       );
 
     case "check": return (
-      <div className="mb-4 flex items-center space-x-2 justify-end">
+      <div className="ml-4 mb-4 flex items-center space-x-2">
         <Checkbox id={field.id} checked={!!data[field.id]} onCheckedChange={v=>setData(d=>({...d,[field.id]:v}))} />
         <Label htmlFor={field.id} className="font-semibold">{field.label}</Label>
       </div>
