@@ -512,7 +512,7 @@ const sections = [
         options: [
           { value: 'healthy',    label: '健康 (定期的な通院等なし)' },
           { value: 'underTreat', label: '通院中、ないし、入院歴あり' },
-          { value: 'other',      label: 'その他' },
+          { value: 'other',      label: 'その他・わからない' },
         ],
         children: [
           {
@@ -547,7 +547,31 @@ const sections = [
             conditionalValue: 'other'
           }
         ]
-      }
+      },
+      {
+        id: "otherSymptom",
+        label: "その他症状",
+        placeholder: "",
+        type: "text"
+      },
+      {
+        id: "height",
+        label: "身⾧",
+        type: "text",
+        placeholder: "例: 170Cm"
+      },
+      {
+        id: "weight",
+        label: "体重",
+        type: "text",
+        placeholder: "例: 約50kg"
+      },
+      {
+        id: "oralMedication",
+        label: "内服薬",
+        placeholder: "",
+        type: "text"
+      },
     ],
   },
 
@@ -565,7 +589,6 @@ const sections = [
          { value: "withFamily",  label: "家族や知人と同居" },
          { value: "facility",    label: "老健・福祉施設等共同生活" },
          { value: "hospital",    label: "医療機関入院中" },
-         { value: "homeless",    label: "住所不定またはホームレス経験がある(過去数年以内)" },
          { value: "other",       label: "その他" }
        ],
        children: [
@@ -594,8 +617,20 @@ const sections = [
             type: "text",
             placeholder: "具体的に記入してください",
             conditionalValue: "other"
-          }
+          },
+
        ]
+     },
+     {
+        id: "homeLess",
+        type: "check",
+        label: "ホームレス経験がある(過去数年以内)",
+        conditional: ()=>true
+     },
+     {
+      id: "smokingDrinking",
+      label: "喫煙/飲酒習慣",
+      type: "text"
      },
      {
        id: "familyTb",
@@ -622,7 +657,8 @@ const sections = [
        type: "radio",
        options: [
          { value: "yes", label: "はい" },
-         { value: "no",  label: "いいえ" }
+         { value: "no",  label: "いいえ" },
+         { value: "unkown",  label: "わからない" },
        ],
        children: [
          {
