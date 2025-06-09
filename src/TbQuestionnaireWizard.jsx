@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,46 +7,18 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
+import Select from "./components/ui/select";
+
+const POST_CODE_API_URL = "https://apis.postcode-jp.com/api/v6/postcodes";
+const POSTAL_CODE_API_KEY = "FqVYXziF2zIfLYrghe1fP3UCpyeFY9VBDlmtcX9";
 
 const patientReasons = ['diagnosed', 'possible', 'healthCheck', 'unknown'];
-
-// Helper: generic select with indent
-function Select({ id, options, value, onChange }) {
-  return (
-    <select
-      id={id}
-      className="border rounded p-2 w-full ml-4"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
-  );
-}
 
 // Age options 0-99 plus >100
 const ageOptions = [
   ...Array.from({ length: 100 }, (_, i) => ({ value: String(i), label: String(i) })),
   { value: ">100", label: ">100" },
 ];
-
-const connectDayOptions = [
-  { value: "0", label: "選択" },
-  { value: "1", label: "月曜日" },
-  { value: "2", label: "火曜日" },
-  { value: "3", label: "水曜日" },
-  { value: "4", label: "木曜日" },
-  { value: "5", label: "金曜日" },
-  { value: "6", label: "土曜日" },
-  { value: "7", label: "日曜日" },
-]
-
-const connectTimeOptions = [
-  { value: "0", label: "選択" },
-  ...Array.from(["09", 10, 11, 12, 13, 14, 15, 16, 17, 18], (_, i) => ({ value: String(_), label: `${_}:00` }))
-]
 
 // Form schema definitions
 const sections = [
@@ -89,16 +61,33 @@ const sections = [
         { value: "male", label: "男性" }, { value: "female", label: "女性" }, { value: "other", label: "その他" }
       ]},
       { id: "birthDate", label: "生年月日", type: "date" },
-      { id: "proxyFlag", label: "代理人による入力", type: "check" },
-      { id: "guardianRelation", label: "患者との関係", type: "text", conditional: d => d.proxyFlag },
-      { id: "guardian", label: "保護者・記入者氏名", type: "text", conditional: d => d.proxyFlag },
-      { id: "guardianAddress", label: "連絡先", type: "text", conditional: d => d.proxyFlag },
-      { id: "address", label: "現住所", type: "text" },
-      { id: "zipCode", label: "郵便番号", type: "text" },
-      { id: "phone", label: "電話番号", type: "text", hint: "※連絡しやすい番号を入力してください。" },
-      { id: "connectFlag", label: "連絡がしやすい曜日、時間入力", type:"check" },
-      { id: "connectDay", label: "連絡がしやすい曜日", type: "select", conditional: d => d.connectFlag, default: "0", options: connectDayOptions },
-      { id: "connectTime", label: "連絡がしやすい時間", type: "select", conditional: d => d.connectFlag, default: "0", options: connectTimeOptions },
+      { 
+        id: "proxyFlag", 
+        label: "代理人による入力", 
+        type: "check",
+        children: [
+          { id: "guardian", label: "保護者・記入者氏名", type: "text", conditional: (d)=>d.proxyFlag },
+          { id: "guardianRelation", label: "患者との関係", type: "text", conditional: (d)=>d.proxyFlag },
+          { id: "guardianAddress", label: "連絡先", type: "text", conditional: (d)=>d.proxyFlag },
+        ]
+      },
+      { id: "postalCode", label: "郵便番号", type: "postcode", placeholder: "例: 123-4567" },
+      { id: "addressPref", label: "現住所", type: "text", placeholder: "都道府県" },
+      { id: "addressCity", label: "", type: "text", placeholder: "市区町村" },
+      { id: "addressTown", label: "", type: "text", oplaceholder: "町域" },
+      { id: "phone", label: "電話番号", type: "text", note: "※連絡しやすい番号を入力してください",
+        children: [
+          {
+            id: "phoneNote",
+            type: "note",
+            label: "※連絡しやすい番号を入力してください",
+            conditional: (d)=>true
+          }
+        ]
+      },
+      { id: "connectFlag", label: "連絡がしやすい曜日、時間入力", type:"check", children: [
+        { id: "connectDay", label: "", type: "text", placeholder: "連絡がしやすい曜日・時間", conditional: d => d.connectFlag },
+      ] },
       { id: "nationality", label: "国籍", type: "radio", options: [
         { value: "japan", label: "日本国籍" },
         { value: "foreigner", label: "外国籍" },
@@ -114,11 +103,10 @@ const sections = [
           },
           {
             id: "jpLevel",
-            label: "",
-            type: "select",
+            label: "日本語能力",
+            type: "radio",
             conditionalValue: "foreigner",
             options: [
-              { label: "日本語能力", value: "0" },
               { label: "挨拶程度", value: "1" },
               { label: "初級", value: "2" },
               { label: "中級", value: "3" },
@@ -255,7 +243,8 @@ const sections = [
           {
             id: "checkupDate",
             label: "検診日",
-            type: "date",
+            type: "text",
+            placeholder: "〇〇〇〇年〇〇月〇〇日",
             conditional: d => ["diagnosed","possible"].includes(d.requestReason)
           }
         ]
@@ -551,7 +540,7 @@ const sections = [
       {
         id: "otherSymptom",
         label: "その他症状",
-        placeholder: "",
+        placeholder: "複数ある場合は列挙して下さい",
         type: "text"
       },
       {
@@ -569,8 +558,8 @@ const sections = [
       {
         id: "oralMedication",
         label: "内服薬",
-        placeholder: "",
-        type: "text"
+        placeholder: "例: 薬の名前・1日〇回等",
+        type: "list"
       },
     ],
   },
@@ -625,12 +614,16 @@ const sections = [
         id: "homeLess",
         type: "check",
         label: "ホームレス経験がある(過去数年以内)",
-        conditional: ()=>true
      },
      {
-      id: "smokingDrinking",
-      label: "喫煙/飲酒習慣",
-      type: "text"
+      id: "smokes",
+      label: "喫煙している",
+      type: "check"
+     },
+     {
+      id: "drinks",
+      label: "よく飲酒する",
+      type: "check"
      },
      {
        id: "familyTb",
@@ -700,7 +693,7 @@ const sections = [
     // ─────────────────────────────────────────────────
     // 属性別質問
     // ─────────────────────────────────────────────────
-     {
+    {
       id: "studentTutoring",
       label: "塾・予備校に通っていますか？",
       type: "text",
@@ -927,47 +920,102 @@ const sections = [
   }
 ];
 
+const drawChildren = (field, data, setData) => {
+  return field.children?.map(child => {
+    // child.conditional があればそれを優先、なければ conditionalValue との比較
+    const ok = child.conditional
+      ? child.conditional(data)
+      : data[field.id] === child.conditionalValue;
+    if (!ok) return null;
+    return (
+        <div key={child.id} className="ml-4">
+          <Field
+            field={child}
+            data={data}
+            setData={setData}
+          />
+        </div>
+    )
+  })
+}
+
 /** Field renderer **/
 function Field({ field, data, setData }) {
   if(field.conditional && !field.conditional(data)) return null;
-  const set = v => setData(d => ({ ...d, [field.id]: v }));
+  // const set = v => setData(d => ({ ...d, [field.id]: v }));
   const labelCls = "block mb-1 font-semibold";
-  const value = data[field.id] || field.default || "";
+  // const value = data[field.id] || field.default || "";
+
+  const getAddressByPostcode = async (postcode) => {
+    try {
+      const response = await fetch(`${POST_CODE_API_URL}/${postcode}`, {
+        method: "GET",
+        headers: {
+          apikey: POSTAL_CODE_API_KEY
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const json = await response.json();
+      if (json.length > 0) {
+        setData(d => ({
+          ...d,
+          addressPref: json[0].pref,
+          addressCity: json[0].city,
+          addressTown: json[0].town
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching postcode data:", error);
+      return null;
+    }
+  }
+
+  const handlePostcodeChange = (e) => {
+    const postcode = e.target.value;
+    const postalCodeRegex = /^〒?\d{3}-?\d{4}$/;
+    setData(d => ({
+      ...d,
+      postalCode: postcode
+    }));
+    if (postalCodeRegex.test(postcode)) {
+      getAddressByPostcode(postcode.replace(/[^\d]/g, ''));
+    }
+  }
 
   switch(field.type) {
     case "text": return (
       <div className="mb-4">
-        <Label className={labelCls} htmlFor={field.id} >{field.label}{field.hint ? <span className="text-xs">({field.hint})</span> : ""}</Label>
-        <Input id={field.id} className="ml-4" value={data[field.id]||""} placeholder={field.placeholder||""} onChange={e=>setData(d=>({...d,[field.id]:e.target.value}))} />
+        <Label className={labelCls} htmlFor={field.id}>{field.label}</Label>
+        <div className="pl-4">
+          <Input id={field.id} value={data[field.id]||""} placeholder={field.placeholder||""} onChange={e=>setData(d=>({...d,[field.id]:e.target.value}))} />
+        </div>
+        {/* ── ここから子フィールド描画 ── */}
+        {drawChildren(field, data, setData)}
+        {/* ── ここまで ── */}
       </div>
     );
+
     case "date": return (
       <div className="mb-4">
         <Label className={labelCls} htmlFor={field.id}>{field.label}</Label>
-        <Input id={field.id} type="date" className="ml-4" value={data[field.id]||""} onChange={e=>setData(d=>({...d,[field.id]:e.target.value}))} />
+        <div className="pl-4">
+          <Input id={field.id} type="date" value={data[field.id]||""} onChange={e=>setData(d=>({...d,[field.id]:e.target.value}))} />
+        </div>
       </div>
     );
+
     case "select": return (
-      <div className="mb-4">
+      <div className="">
         <Label className={labelCls} htmlFor={field.id}>{field.label}</Label>
-        <Select id={field.id} options={field.options} value={data[field.id]||field.default} onChange={v=>setData(d=>({...d,[field.id]:v}))} />
+        <div className="pl-4 mb-4">
+          <Select id={field.id} options={field.options} value={data[field.id]||field.default} onChange={v=>setData(d=>({...d,[field.id]:v}))} />
+        </div>
         {/* ── ここから子フィールド描画 ── */}
-        {field.children?.map(child => {
-          // child.conditional があればそれを優先、なければ conditionalValue との比較
-          const ok = child.conditional
-            ? child.conditional(data)
-            : data[field.id] === child.conditionalValue;
-          if (!ok) return null;
-            return (
-                <div key={child.id} className="ml-4">
-                  <Field
-                    field={child}
-                    data={data}
-                    setData={setData}
-                  />
-                </div>
-              )
-        })}
+        {drawChildren(field, data, setData)}
         {/* ── ここまで ── */}
       </div>
     );
@@ -1023,10 +1071,15 @@ function Field({ field, data, setData }) {
       );
 
     case "check": return (
-      <div className="ml-4 mb-4 flex items-center space-x-2">
-        <Checkbox id={field.id} checked={!!data[field.id]} onCheckedChange={v=>setData(d=>({...d,[field.id]:v}))} />
-        <Label htmlFor={field.id} className="font-semibold">{field.label}</Label>
-      </div>
+      <>
+        <div className="ml-4 mb-4 flex items-center space-x-2">
+          <Checkbox id={field.id} checked={!!data[field.id]} onCheckedChange={v=>setData(d=>({...d,[field.id]:v}))} />
+          <Label htmlFor={field.id} className="font-semibold">{field.label}</Label>
+        </div>
+        {/* ── ここから子フィールド描画 ── */}
+        {drawChildren(field, data, setData)}
+        {/* ── ここまで ── */}
+      </>
     );
 
     case "checkbox":
@@ -1145,6 +1198,18 @@ function Field({ field, data, setData }) {
           </div>
         </div>
       );
+
+    case "postcode": return (
+      <div className="mb-4">
+        <Label className={labelCls} htmlFor={field.id}>{field.label}</Label>
+        <div className="pl-4">
+          <Input id={field.id} value={data[field.id]||""} placeholder={field.placeholder||""} onChange={handlePostcodeChange} />
+        </div>
+        {/* ── ここから子フィールド描画 ── */}
+        {drawChildren(field, data, setData)}
+        {/* ── ここまで ── */}
+      </div>
+    )
 
     default: return null;
   }
