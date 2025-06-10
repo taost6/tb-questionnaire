@@ -74,7 +74,7 @@ const sections = [
       { id: "postalCode", label: "郵便番号", type: "postcode", placeholder: "例: 123-4567" },
       { id: "addressPref", label: "現住所", type: "text", placeholder: "都道府県" },
       { id: "addressCity", label: "", type: "text", placeholder: "市区町村" },
-      { id: "addressTown", label: "", type: "text", oplaceholder: "町域" },
+      { id: "addressTown", label: "", type: "text", placeholder: "町域" },
       { id: "phone", label: "電話番号", type: "text", note: "※連絡しやすい番号を入力してください",
         children: [
           {
@@ -107,10 +107,10 @@ const sections = [
             type: "radio",
             conditionalValue: "foreigner",
             options: [
-              { label: "挨拶程度", value: "1" },
-              { label: "初級", value: "2" },
-              { label: "中級", value: "3" },
               { label: "上級", value: "4" },
+              { label: "中級", value: "3" },
+              { label: "初級", value: "2" },
+              { label: "挨拶程度", value: "1" },
             ]
           }
         ]
@@ -238,14 +238,14 @@ const sections = [
             id: "checkupType",
             label: "検診の種類",
             type: "text",
-            conditional: d => ["diagnosed","possible"].includes(d.requestReason)
+            conditional: d => ["healthCheck"].includes(d.requestReason)
           },
           {
             id: "checkupDate",
             label: "検診日",
             type: "text",
             placeholder: "〇〇〇〇年〇〇月〇〇日",
-            conditional: d => ["diagnosed","possible"].includes(d.requestReason)
+            conditional: d => ["healthCheck"].includes(d.requestReason)
           }
         ]
       },
@@ -558,7 +558,7 @@ const sections = [
       {
         id: "oralMedication",
         label: "内服薬",
-        placeholder: "例: 薬の名前・1日〇回等",
+        placeholder: "薬の名前か種類",
         type: "list"
       },
     ],
