@@ -1,3 +1,3 @@
-const patientReasons = ["diagnosed", "possible", "healthCheck", "unknown"];
+const patientReasons = ["diagnosed", "possible", "healthCheck"];
 
 export default patientReasons;

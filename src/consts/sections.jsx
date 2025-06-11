@@ -60,7 +60,7 @@ const sections = [
         options: [
           { value: "male", label: "男性" },
           { value: "female", label: "女性" },
-          { value: "other", label: "その他" },
+          { value: "other", label: "その他・分からない" },
         ],
       },
       { id: "birthDate", label: "生年月日", type: "date", required: true },
@@ -75,8 +75,7 @@ const sections = [
         ],
       },
       { id: "postalCode", label: "郵便番号", type: "postcode", placeholder: "例: 123-4567" },
-      { id: "addressPref", label: "現住所", type: "text", placeholder: "都道府県" },
-      { id: "addressCity", label: "", type: "text", placeholder: "市区町村" },
+      { id: "addressPrefCity", label: "現住所", type: "text", placeholder: "都道府県・市区町村" },
       { id: "addressTown", label: "", type: "text", placeholder: "町域" },
       {
         id: "phone",
@@ -127,6 +126,7 @@ const sections = [
               { label: "中級", value: "3" },
               { label: "初級", value: "2" },
               { label: "挨拶程度", value: "1" },
+              { label: "その他・分からない", value: "-1" },
             ],
           },
         ],
@@ -216,12 +216,12 @@ const sections = [
         type: "radio",
         required: true,
         options: [
-          { value: "diagnosed", label: "医療機関にて結核の診断を受けた" },
-          { value: "possible", label: "医療機関にて結核の可能性を指摘された" },
-          { value: "investigation", label: "結核患者の濃厚接触者として調査を受けた" },
-          { value: "contactPossible", label: "結核患者との接触の可能性を指摘された" },
-          { value: "healthCheck", label: "健康診断で異常を指摘された" },
-          { value: "unknown", label: "よく分からない" },
+          { value: "diagnosed", label: "医療機関にて結核の診断を受けた", mode: "patients" },
+          { value: "possible", label: "医療機関にて結核の可能性を指摘された", mode: "patients" },
+          { value: "investigation", label: "結核患者の濃厚接触者として調査を受けた", mode: "contacts" },
+          { value: "contactPossible", label: "結核患者との接触の可能性を指摘された", mode: "contacts" },
+          { value: "healthCheck", label: "健康診断で異常を指摘された", mode: "patients" },
+          { value: "unknown", label: "よく分からない", mode: "contacts" },
         ],
         children: [
           {
@@ -231,7 +231,7 @@ const sections = [
             options: [
               { value: "living", label: "同居している" },
               { value: "work", label: "職場等で日常的に接している" },
-              { value: "unknownRelation", label: "わからない" },
+              { value: "unknownRelation", label: "分からない" },
               { value: "otherRelation", label: "その他" },
             ],
             conditionalValue: "investigation",
@@ -336,7 +336,7 @@ const sections = [
         options: [
           { value: "no", label: "なし" },
           { value: "yes", label: "あり" },
-          { value: "unknown", label: "わからない" },
+          { value: "unknown", label: "分からない" },
         ],
         conditional: (d) => patientReasons.includes(d.requestReason),
         children: [
@@ -364,7 +364,7 @@ const sections = [
         options: [
           { value: "no", label: "なし" },
           { value: "yes", label: "あり" },
-          { value: "unknown", label: "わからない" },
+          { value: "unknown", label: "分からない" },
         ],
         conditional: (d) => patientReasons.includes(d.requestReason),
         children: [
@@ -387,7 +387,7 @@ const sections = [
         options: [
           { value: "yes", label: "はい" },
           { value: "no", label: "いいえ" },
-          { value: "unknown", label: "わからない" },
+          { value: "unknown", label: "分からない" },
         ],
         conditional: (d) => !patientReasons.includes(d.requestReason),
         children: [
@@ -413,7 +413,7 @@ const sections = [
             options: [
               { value: "yes", label: "はい" },
               { value: "no", label: "いいえ" },
-              { value: "unknown", label: "わからない" },
+              { value: "unknown", label: "分からない" },
             ],
             conditionalValue: "yes",
             required: true,
@@ -699,7 +699,7 @@ const sections = [
         options: [
           { value: "yes", label: "はい" },
           { value: "no", label: "いいえ" },
-          { value: "unkown", label: "わからない" },
+          { value: "unkown", label: "分からない" },
         ],
         children: [
           {

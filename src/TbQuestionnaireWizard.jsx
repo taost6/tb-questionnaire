@@ -5,8 +5,42 @@ import Field from "./components/ui/field";
 import { motion } from "framer-motion";
 import sections from "./consts/sections";
 import patientReasons from "./consts/patientReasons";
+import { CloudCog } from "lucide-react";
 
 export default function TbQuestionnaireWizard() {
+  const [showOptions, setShowOptions] = useState({
+    hide: {},
+    noRequire: {},
+    mode: "patients",
+  });
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const parsedParams = {
+      hide: {},
+      noRequire: {},
+      mode: "contacts",
+    };
+    for (const [key, value] of searchParams.entries()) {
+      if (key === "hide" || key === "noRequire") {
+        parsedParams[key] = {};
+        value
+          .split(",")
+          .map((v) => v.trim())
+          .forEach((k) => {
+            parsedParams[key][k] = true;
+          });
+      } else if (key === "mode") {
+        if (value === "patients") parsedParams.mode = "patients";
+        else parsedParams.mode = "contacts";
+      } else {
+        parsedParams[key] = value;
+      }
+    }
+    setShowOptions(parsedParams);
+    console.log(showOptions);
+  }, []);
+
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({
     language: "日本語",
@@ -28,8 +62,9 @@ export default function TbQuestionnaireWizard() {
         if ((f.conditional && !f.conditional(formData)) || (f.conditionalValue && f.conditionalValue !== formData[parentKey])) {
           return;
         }
+        if (showOptions.hide[f.id]) return;
 
-        if (f.required) {
+        if (!showOptions.noRequire[f.id] && f.required) {
           const value = formData[f.id];
           if (value == null || value === "") {
             newInputError[f.id] = true;
@@ -90,9 +125,20 @@ export default function TbQuestionnaireWizard() {
               <h2 className="text-xl font-semibold mb-4">{cur.title}</h2>
             )}
 
-            {cur.fields.map((f) => (
-              <Field key={f.id} field={f} data={formData} setData={setFormData} inputError={inputError} error={inputError[f.id] ? true : false} />
-            ))}
+            {cur.fields.map(
+              (f) =>
+                !showOptions.hide[f.id] && (
+                  <Field
+                    key={f.id}
+                    field={f}
+                    data={formData}
+                    setData={setFormData}
+                    inputError={inputError}
+                    error={inputError[f.id] ? true : false}
+                    showOptions={showOptions}
+                  />
+                )
+            )}
           </CardContent>
         </Card>
       </motion.div>
