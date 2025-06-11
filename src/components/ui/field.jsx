@@ -23,7 +23,18 @@ const drawChildren = (field, data, setData, inputError = {}) => {
 };
 
 /** Field renderer **/
-function Field({ field, data, setData, inputError = {}, error = false }) {
+function Field({
+  field,
+  data,
+  setData,
+  inputError = {},
+  error = false,
+  showOptions = {
+    hide: {},
+    noRequire: {},
+    mode: "contacts",
+  },
+}) {
   if (field.conditional && !field.conditional(data)) return null;
   // const set = v => setData(d => ({ ...d, [field.id]: v }));
   const labelCls = "block mb-1 font-semibold";
@@ -46,8 +57,7 @@ function Field({ field, data, setData, inputError = {}, error = false }) {
       if (json.length > 0) {
         setData((d) => ({
           ...d,
-          addressPref: json[0].pref,
-          addressCity: json[0].city,
+          addressPrefCity: json[0].pref + json[0].city,
           addressTown: json[0].town,
         }));
       }
@@ -140,6 +150,7 @@ function Field({ field, data, setData, inputError = {}, error = false }) {
           {/* ラジオ選択肢 */}
           <div className="space-y-1 ml-4">
             {field.options.map((opt) => {
+              if (opt.mode && opt.mode !== showOptions.mode) return null;
               const selected = data[field.id] === opt.value;
               return (
                 <div key={opt.value}>
