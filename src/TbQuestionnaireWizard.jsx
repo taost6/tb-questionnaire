@@ -22,20 +22,39 @@ export default function TbQuestionnaireWizard() {
       mode: "contacts",
     };
     for (const [key, value] of searchParams.entries()) {
-      if (key === "hide" || key === "noRequire") {
-        parsedParams[key] = {};
+      if (key === "options") {
         value
           .split(",")
           .map((v) => v.trim())
           .forEach((k) => {
-            parsedParams[key][k] = true;
+            if (k == "") return;
+            if (k === "noaddr") {
+              parsedParams.hide["postalCode"] = true;
+              parsedParams.hide["addressPrefCity"] = true;
+              parsedParams.hide["addressTown"] = true;
+            } else if (k === "nobirthd") {
+              parsedParams.hide["birthDate"] = true;
+            } else if (k === "patients") {
+              parsedParams.mode = "patients";
+            } else if (k === "contacts") {
+              parsedParams.mode = "contacts";
+            }
           });
-      } else if (key === "mode") {
-        if (value === "patients") parsedParams.mode = "patients";
-        else parsedParams.mode = "contacts";
-      } else {
-        parsedParams[key] = value;
       }
+      // if (key === "hide" || key === "noRequire") {
+      //   parsedParams[key] = {};
+      //   value
+      //     .split(",")
+      //     .map((v) => v.trim())
+      //     .forEach((k) => {
+      //       parsedParams[key][k] = true;
+      //     });
+      // } else if (key === "mode") {
+      //   if (value === "patients") parsedParams.mode = "patients";
+      //   else parsedParams.mode = "contacts";
+      // } else {
+      //   parsedParams[key] = value;
+      // }
     }
     setShowOptions(parsedParams);
     console.log(showOptions);
@@ -70,6 +89,16 @@ export default function TbQuestionnaireWizard() {
             newInputError[f.id] = true;
             isValid = false;
             console.log("Validation error:", f.id);
+          } else {
+            newInputError[f.id] = false;
+          }
+        }
+
+        if (f.id === "phone" && formData[f.id] !== "") {
+          const jpPhoneRegex = /^0\d{1,4}-?\d{1,4}-?\d{3,4}$/;
+          if (!jpPhoneRegex.test(formData[f.id])) {
+            isValid = false;
+            newInputError[f.id] = true;
           } else {
             newInputError[f.id] = false;
           }
