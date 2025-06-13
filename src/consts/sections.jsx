@@ -12,7 +12,14 @@ const sections = [
     id: "account",
     title: "I. 連絡先と言語設定",
     fields: [
-      { id: "email", label: "メールアドレス", type: "text", placeholder: "example@example.com", required: true },
+      {
+        id: "email",
+        label: "メールアドレス",
+        type: "text",
+        placeholder: "example@example.com",
+        required: true,
+        validationErrorMessage: "正しい形式で入力してください。",
+      },
       {
         id: "language",
         label: "利用言語",
@@ -88,6 +95,7 @@ const sections = [
         label: "電話番号",
         type: "text",
         note: "※連絡しやすい番号を入力してください",
+        validationErrorMessage: "正しい形式で入力してください。",
         required: true,
         children: [
           {

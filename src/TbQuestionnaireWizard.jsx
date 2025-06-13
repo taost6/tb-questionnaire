@@ -11,7 +11,7 @@ export default function TbQuestionnaireWizard() {
   const [showOptions, setShowOptions] = useState({
     hide: {},
     noRequire: {},
-    mode: "patients",
+    mode: "normal",
   });
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function TbQuestionnaireWizard() {
     const parsedParams = {
       hide: {},
       noRequire: {},
-      mode: "contacts",
+      mode: "normal",
     };
     for (const [key, value] of searchParams.entries()) {
       if (key === "options") {
@@ -70,11 +70,13 @@ export default function TbQuestionnaireWizard() {
     otherRegularContactsList: [""],
   });
   const [inputError, setInputError] = useState({});
+  const [validationError, setValidationError] = useState({});
   const [showData, setShowData] = useState(false);
 
   const validateFields = (fields, parentId = "root") => {
     let isValid = true;
     const newInputError = {};
+    const newValidationError = {};
 
     const validate = (fieldList, parentKey) => {
       fieldList.forEach((f) => {
@@ -82,25 +84,37 @@ export default function TbQuestionnaireWizard() {
           return;
         }
         if (showOptions.hide[f.id]) return;
-
+        const value = formData[f.id];
         if (!showOptions.noRequire[f.id] && f.required) {
-          const value = formData[f.id];
           if (value == null || value === "") {
             newInputError[f.id] = true;
             isValid = false;
-            console.log("Validation error:", f.id);
+            console.log("Input error:", f.id);
           } else {
             newInputError[f.id] = false;
           }
         }
 
-        if (f.id === "phone" && formData[f.id] !== "") {
+        if (f.id === "phone" && value && value !== "") {
           const jpPhoneRegex = /^0\d{1,4}-?\d{1,4}-?\d{3,4}$/;
-          if (!jpPhoneRegex.test(formData[f.id])) {
+          if (!jpPhoneRegex.test(value)) {
             isValid = false;
-            newInputError[f.id] = true;
-          } else {
             newInputError[f.id] = false;
+            newValidationError[f.id] = true;
+          } else {
+            newValidationError[f.id] = false;
+          }
+        }
+
+        // Email validation
+        if (f.id === "email" && value && value !== "") {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value)) {
+            isValid = false;
+            newInputError[f.id] = false;
+            newValidationError[f.id] = true;
+          } else {
+            newValidationError[f.id] = false;
           }
         }
 
@@ -113,6 +127,7 @@ export default function TbQuestionnaireWizard() {
     validate(fields, parentId);
 
     setInputError(newInputError);
+    setValidationError(newValidationError);
     return isValid;
   };
 
@@ -163,6 +178,7 @@ export default function TbQuestionnaireWizard() {
                     data={formData}
                     setData={setFormData}
                     inputError={inputError}
+                    validationError={validationError}
                     error={inputError[f.id] ? true : false}
                     showOptions={showOptions}
                   />

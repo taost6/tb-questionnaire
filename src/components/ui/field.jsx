@@ -28,18 +28,18 @@ function Field({
   data,
   setData,
   inputError = {},
+  validationError = {},
   error = false,
   showOptions = {
     hide: {},
     noRequire: {},
-    mode: "contacts",
+    mode: "normal",
   },
 }) {
   if (field.conditional && !field.conditional(data)) return null;
   // const set = v => setData(d => ({ ...d, [field.id]: v }));
   const labelCls = "block mb-1 font-semibold";
   // const value = data[field.id] || field.default || "";
-  field.id === "occupation" && console.log("inputError:", inputError);
   const getAddressByPostcode = async (postcode) => {
     try {
       const response = await fetch(`${POST_CODE_API_URL}/${postcode}`, {
@@ -83,7 +83,7 @@ function Field({
     case "text":
       return (
         <div className="mb-4">
-          <Label className={`${labelCls} ${error && "text-red-500"}`} htmlFor={field.id}>
+          <Label className={`${labelCls} ${(error || validationError[field.id]) && "text-red-500"}`} htmlFor={field.id}>
             {field.label}
           </Label>
           <div className="pl-4">
@@ -95,6 +95,11 @@ function Field({
               validationError={error}
             />
           </div>
+          {validationError[field.id] && (
+            <Label className={`${labelCls} ml-4 text-red-500`} htmlFor={field.id}>
+              {field.validationErrorMessage ? field.validationErrorMessage : "正しい形式で入力してください。"}
+            </Label>
+          )}
           {/* ── ここから子フィールド描画 ── */}
           {drawChildren(field, data, setData, inputError)}
           {/* ── ここまで ── */}
@@ -150,7 +155,7 @@ function Field({
           {/* ラジオ選択肢 */}
           <div className="space-y-1 ml-4">
             {field.options.map((opt) => {
-              if (opt.mode && opt.mode !== showOptions.mode) return null;
+              if (showOptions.mode != "normal" && opt.mode && opt.mode !== showOptions.mode) return null;
               const selected = data[field.id] === opt.value;
               return (
                 <div key={opt.value}>
