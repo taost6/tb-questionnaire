@@ -96,7 +96,7 @@ function Field({
             />
           </div>
           {validationError[field.id] && (
-            <Label className={`${labelCls} ml-4 text-red-500`} htmlFor={field.id}>
+            <Label className={`${labelCls} ml-4 mt-1 text-red-500`} htmlFor={field.id}>
               {field.validationErrorMessage ? field.validationErrorMessage : "正しい形式で入力してください。"}
             </Label>
           )}

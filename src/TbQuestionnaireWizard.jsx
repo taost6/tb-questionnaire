@@ -41,23 +41,8 @@ export default function TbQuestionnaireWizard() {
             }
           });
       }
-      // if (key === "hide" || key === "noRequire") {
-      //   parsedParams[key] = {};
-      //   value
-      //     .split(",")
-      //     .map((v) => v.trim())
-      //     .forEach((k) => {
-      //       parsedParams[key][k] = true;
-      //     });
-      // } else if (key === "mode") {
-      //   if (value === "patients") parsedParams.mode = "patients";
-      //   else parsedParams.mode = "contacts";
-      // } else {
-      //   parsedParams[key] = value;
-      // }
     }
     setShowOptions(parsedParams);
-    console.log(showOptions);
   }, []);
 
   const [step, setStep] = useState(0);
@@ -75,8 +60,9 @@ export default function TbQuestionnaireWizard() {
 
   const validateFields = (fields, parentId = "root") => {
     let isValid = true;
-    const newInputError = {};
-    const newValidationError = {};
+    let newInputError = {};
+    let newValidationError = {};
+    let hasInputError = false;
 
     const validate = (fieldList, parentKey) => {
       fieldList.forEach((f) => {
@@ -89,7 +75,7 @@ export default function TbQuestionnaireWizard() {
           if (value == null || value === "") {
             newInputError[f.id] = true;
             isValid = false;
-            console.log("Input error:", f.id);
+            hasInputError = true;
           } else {
             newInputError[f.id] = false;
           }
@@ -128,15 +114,24 @@ export default function TbQuestionnaireWizard() {
 
     setInputError(newInputError);
     setValidationError(newValidationError);
-    return isValid;
+    return [isValid, hasInputError, newValidationError];
   };
 
   const handleNext = () => {
     // setPage(p => p + 1);
     window.scrollTo(0, 0);
-    let newInputError = {};
-    if (!validateFields(sections[step].fields)) {
-      alert("赤字の設問は必ず入力して下さい");
+    let isValid, hasInputError, vError;
+    [isValid, hasInputError, vError] = validateFields(sections[step].fields);
+    if (!isValid) {
+      if (hasInputError) {
+        alert("赤字の設問は必ず入力して下さい");
+      }
+      if (step === 0 && vError.email) {
+        alert("メールアドレスの形式が不正です");
+      } else if (step === 1 && vError.phone) {
+        alert("電話番号の形式が不正です");
+      } else {
+      }
       return;
     }
     setStep((s) => Math.min(s + 1, sections.length - 1));
@@ -144,7 +139,6 @@ export default function TbQuestionnaireWizard() {
 
   const handleSubmit = () => {
     // 送信処理
-    console.log("送信データ", formData);
     document.getElementById("formData").style.display = "block";
     setShowData(true);
   };
