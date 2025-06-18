@@ -7,11 +7,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/tb-questionnaire">
       <Routes>
-        <Route path="/tb-questionnaire" element={<TbQuestionnaireWizard />} />
-        <Route path="/tb-dialogue" element={<TbDialogueWizard />} />
-        <Route path="*" element={<Navigate to="/tb-questionnaire" replace />} />
+        <Route path="/questionnaire" element={<TbQuestionnaireWizard />} />
+        <Route path="/dialogue" element={<TbDialogueWizard />} />
+        <Route path="*" element={<Navigate to="/questionnaire" replace />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
