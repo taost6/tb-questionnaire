@@ -140,6 +140,7 @@ export default function TbQuestionnaireWizard() {
   const handleSubmit = () => {
     // 送信処理
     document.getElementById("formData").style.display = "block";
+    location.href = "/tb-dialogue";
     setShowData(true);
   };
 
