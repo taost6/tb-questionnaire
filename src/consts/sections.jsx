@@ -73,7 +73,7 @@ const sections = [
         options: [
           { value: "male", label: "男性" },
           { value: "female", label: "女性" },
-          { value: "other", label: "その他・分からない" },
+          { value: "other", label: "その他・わからない" },
         ],
       },
       { id: "birthDate", label: "生年月日", type: "date", required: true },
@@ -140,7 +140,7 @@ const sections = [
               { label: "中級", value: "3" },
               { label: "初級", value: "2" },
               { label: "挨拶程度", value: "1" },
-              { label: "その他・分からない", value: "-1" },
+              { label: "その他・わからない", value: "-1" },
             ],
           },
         ],
@@ -159,7 +159,7 @@ const sections = [
           { value: "trainee", label: "技能実習生" },
           { value: "houseWork", label: "家事従事者" },
           { value: "unemployed", label: "無職" },
-          { value: "otherOcc", label: "その他・分からない" },
+          { value: "otherOcc", label: "その他・わからない" },
         ],
         children: [
           {
@@ -244,7 +244,7 @@ const sections = [
             options: [
               { value: "living", label: "同居している" },
               { value: "work", label: "職場等で日常的に接している" },
-              { value: "unknownRelation", label: "分からない" },
+              { value: "unknownRelation", label: "わからない" },
               { value: "otherRelation", label: "その他" },
             ],
             conditionalValue: "investigation",
@@ -341,11 +341,11 @@ const sections = [
           },
           {
             id: "symptomSince",
-            label: "「せき」や「たん」といった症状は、いつから続いていますか？",
+            label: "「せき」や「たん」といった症状はありますか？",
             type: "radio",
             required: true,
             options: [
-              { value: "none", label: "特に症状はない" },
+              { value: "none", label: "特にない" },
               { value: "since-1w", label: "1～2週間前から" },
               { value: "since-2w", label: "2～3週間前から" },
               { value: "since-mt1m", label: "1ヶ月以上前から" },
@@ -366,7 +366,7 @@ const sections = [
           {
             id: "otherSymptom",
             label: "その他に症状はありますか？",
-            placeholder: "場合は列挙して下さい",
+            placeholder: "複数ある場合は列挙して下さい",
             type: "text",
             conditional: (d) => ["underTreat", "underHospital"].includes(d.healthStatus),
           },
@@ -411,7 +411,7 @@ const sections = [
         options: [
           { value: "no", label: "なし" },
           { value: "yes", label: "あり" },
-          { value: "unknown", label: "分からない" },
+          { value: "unknown", label: "わからない" },
         ],
         conditional: (d) => patientReasons.includes(d.requestReason),
         children: [
@@ -439,7 +439,7 @@ const sections = [
         options: [
           { value: "no", label: "なし" },
           { value: "yes", label: "あり" },
-          { value: "unknown", label: "分からない" },
+          { value: "unknown", label: "わからない" },
         ],
         conditional: (d) => patientReasons.includes(d.requestReason),
         children: [
@@ -462,7 +462,7 @@ const sections = [
         options: [
           { value: "yes", label: "はい" },
           { value: "no", label: "いいえ" },
-          { value: "unknown", label: "分からない" },
+          { value: "unknown", label: "わからない" },
         ],
         conditional: (d) => !patientReasons.includes(d.requestReason),
         children: [
@@ -488,7 +488,7 @@ const sections = [
             options: [
               { value: "yes", label: "はい" },
               { value: "no", label: "いいえ" },
-              { value: "unknown", label: "分からない" },
+              { value: "unknown", label: "わからない" },
             ],
             conditionalValue: "yes",
             required: true,
@@ -717,7 +717,7 @@ const sections = [
         options: [
           { value: "yes", label: "はい" },
           { value: "no", label: "いいえ" },
-          { value: "unkown", label: "分からない" },
+          { value: "unkown", label: "わからない" },
         ],
         children: [
           {
