@@ -73,7 +73,7 @@ const sections = [
         options: [
           { value: "male", label: "男性" },
           { value: "female", label: "女性" },
-          { value: "other", label: "その他・わからない" },
+          { value: "other", label: "その他・分からない" },
         ],
       },
       { id: "birthDate", label: "生年月日", type: "date", required: true },
@@ -120,7 +120,7 @@ const sections = [
         options: [
           { value: "japan", label: "日本国籍" },
           { value: "foreigner", label: "外国籍" },
-          { value: "other", label: "その他・わからない" },
+          { value: "other", label: "その他・分からない" },
         ],
         children: [
           {
@@ -140,7 +140,7 @@ const sections = [
               { label: "中級", value: "3" },
               { label: "初級", value: "2" },
               { label: "挨拶程度", value: "1" },
-              { label: "その他・わからない", value: "-1" },
+              { label: "その他・分からない", value: "-1" },
             ],
           },
         ],
@@ -159,7 +159,7 @@ const sections = [
           { value: "trainee", label: "技能実習生" },
           { value: "houseWork", label: "家事従事者" },
           { value: "unemployed", label: "無職" },
-          { value: "otherOcc", label: "その他・わからない" },
+          { value: "otherOcc", label: "その他・分からない" },
         ],
         children: [
           {
@@ -234,7 +234,7 @@ const sections = [
           { value: "investigation", label: "結核患者の濃厚接触者として調査を受けた", mode: "contacts" },
           { value: "contactPossible", label: "結核患者との接触の可能性を指摘された", mode: "contacts" },
           { value: "healthCheck", label: "健康診断で異常を指摘された", mode: "patients" },
-          { value: "unknown", label: "よくわからない", mode: "contacts" },
+          { value: "unknown", label: "よく分からない", mode: "contacts" },
         ],
         children: [
           {
@@ -244,7 +244,7 @@ const sections = [
             options: [
               { value: "living", label: "同居している" },
               { value: "work", label: "職場等で日常的に接している" },
-              { value: "unknownRelation", label: "わからない" },
+              { value: "unknownRelation", label: "分からない" },
               { value: "otherRelation", label: "その他" },
             ],
             conditionalValue: "investigation",
@@ -305,7 +305,7 @@ const sections = [
           { value: "healthy", label: "健康 (定期的な通院等なし)" },
           { value: "underTreat", label: "症状あり (未通院)" },
           { value: "underHospital", label: "通院中" },
-          { value: "other", label: "その他・わからない" },
+          { value: "other", label: "その他・分からない" },
         ],
         children: [
           // {
@@ -349,7 +349,7 @@ const sections = [
               { value: "since-1w", label: "1～2週間前から" },
               { value: "since-2w", label: "2～3週間前から" },
               { value: "since-mt1m", label: "1ヶ月以上前から" },
-              { value: "other", label: "その他・わからない" },
+              { value: "other", label: "その他・分からない" },
             ],
             conditional: (d) => ["underTreat", "underHospital"].includes(d.healthStatus),
             children: [
@@ -411,7 +411,7 @@ const sections = [
         options: [
           { value: "no", label: "なし" },
           { value: "yes", label: "あり" },
-          { value: "unknown", label: "わからない" },
+          { value: "unknown", label: "分からない" },
         ],
         conditional: (d) => patientReasons.includes(d.requestReason),
         children: [
@@ -439,7 +439,7 @@ const sections = [
         options: [
           { value: "no", label: "なし" },
           { value: "yes", label: "あり" },
-          { value: "unknown", label: "わからない" },
+          { value: "unknown", label: "分からない" },
         ],
         conditional: (d) => patientReasons.includes(d.requestReason),
         children: [
@@ -462,7 +462,7 @@ const sections = [
         options: [
           { value: "yes", label: "はい" },
           { value: "no", label: "いいえ" },
-          { value: "unknown", label: "わからない" },
+          { value: "unknown", label: "分からない" },
         ],
         conditional: (d) => !patientReasons.includes(d.requestReason),
         children: [
@@ -476,7 +476,7 @@ const sections = [
               { value: "2to3m", label: "２か月以上３か月未満" },
               { value: "3to6m", label: "３か月以上６か月未満" },
               { value: "gt6m", label: "６か月以上" },
-              { value: "unk", label: "よくわからない" },
+              { value: "unk", label: "よく分からない" },
             ],
             conditionalValue: "yes",
             required: true,
@@ -488,7 +488,7 @@ const sections = [
             options: [
               { value: "yes", label: "はい" },
               { value: "no", label: "いいえ" },
-              { value: "unknown", label: "わからない" },
+              { value: "unknown", label: "分からない" },
             ],
             conditionalValue: "yes",
             required: true,
@@ -528,7 +528,7 @@ const sections = [
           { value: "annual", label: "毎年受けている" },
           { value: "fewYear", label: "数年に一度受けている" },
           { value: "gt3year", label: "３年間以上受けていない" },
-          { value: "other", label: "その他・わからない" },
+          { value: "other", label: "その他・分からない" },
         ],
         conditional: (d) => !patientReasons.includes(d.requestReason),
         children: [
@@ -540,7 +540,7 @@ const sections = [
               { value: "none", label: "指示されていない" },
               { value: "notDone", label: "指示を受けたが受診していない" },
               { value: "done", label: "指示を受け受診している" },
-              { value: "other", label: "その他・わからない" },
+              { value: "other", label: "その他・分からない" },
             ],
             conditional: (d) => ["annual", "fewYear"].includes(d.regularCheckup),
             required: true,
@@ -556,7 +556,7 @@ const sections = [
           { value: "no", label: "飲んでいない" },
           { value: "planned", label: "飲むことになっている" },
           { value: "yes", label: "飲んでいる" },
-          { value: "other", label: "その他・わからない" },
+          { value: "other", label: "その他・分からない" },
         ],
         conditional: (d) => !patientReasons.includes(d.requestReason),
         children: [
@@ -580,7 +580,7 @@ const sections = [
         options: [
           { value: "yes", label: "あり" },
           { value: "no", label: "なし" },
-          { value: "other", label: "その他・わからない" },
+          { value: "other", label: "その他・分からない" },
         ],
         children: [
           {
@@ -696,7 +696,7 @@ const sections = [
         options: [
           { value: "yes", label: "いる" },
           { value: "no", label: "いない" },
-          { value: "unknown", label: "その他・わからない" },
+          { value: "unknown", label: "その他・分からない" },
         ],
         children: [
           {
@@ -717,7 +717,7 @@ const sections = [
         options: [
           { value: "yes", label: "はい" },
           { value: "no", label: "いいえ" },
-          { value: "unkown", label: "わからない" },
+          { value: "unkown", label: "分からない" },
         ],
         children: [
           {
