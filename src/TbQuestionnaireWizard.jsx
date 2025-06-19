@@ -12,14 +12,20 @@ export default function TbQuestionnaireWizard() {
     hide: {},
     noRequire: {},
     mode: "normal",
+    noCheck: false,
   });
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash; // e.g. #/questionnaire?options=nocheck
+    const queryString = hash.includes("?") ? hash.split("?")[1] : "";
+    const searchParams = new URLSearchParams(queryString);
+
+    console.log("searchParams", searchParams);
     const parsedParams = {
       hide: {},
       noRequire: {},
       mode: "normal",
+      noCheck: false,
     };
     for (const [key, value] of searchParams.entries()) {
       if (key === "options") {
@@ -38,6 +44,8 @@ export default function TbQuestionnaireWizard() {
               parsedParams.mode = "patients";
             } else if (k === "contacts") {
               parsedParams.mode = "contacts";
+            } else if (k === "nocheck") {
+              parsedParams.noCheck = true;
             }
           });
       }
@@ -63,9 +71,10 @@ export default function TbQuestionnaireWizard() {
     let newInputError = {};
     let newValidationError = {};
     let hasInputError = false;
-
+    console.log("showOptions", showOptions);
     const validate = (fieldList, parentKey) => {
       fieldList.forEach((f) => {
+        if (showOptions.noCheck) return;
         if ((f.conditional && !f.conditional(formData)) || (f.conditionalValue && f.conditionalValue !== formData[parentKey])) {
           return;
         }
@@ -158,7 +167,7 @@ export default function TbQuestionnaireWizard() {
           <CardContent className="p-6">
             {cur.id === "health" ? (
               <h2 className="text-xl font-semibold mb-4">
-                {cur.title} ({patientReasons.includes(formData.requestReason) ? "患者" : "接触者"})
+                {cur.title} ({showOptions.mode === "patients" || patientReasons.includes(formData.requestReason) ? "患者" : "接触者"})
               </h2>
             ) : (
               <h2 className="text-xl font-semibold mb-4">{cur.title}</h2>

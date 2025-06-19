@@ -12,46 +12,20 @@ const TbDialogueWizard = () => {
   useEffect(() => {
     setMsgs([
       {
-        content: `ありがとうございます。それでは、行動履歴についてお伺いしてまいりますね。どうぞよろしくお願いいたします。
-
-まず、本日はどのように過ごされましたか？
-どこに行かれたか、誰と一緒だったか、マスクの着用はされていたかを教えてください。`,
+        content: `ご回答頂いた内容について、質問
+宜しいでしょうか。なお、対話を終了
+されたい際は、右下の終了ボタンで
+いつでも終了できます。`,
         dir: "left",
         date: "6/17(火)",
         time: "12:00",
       },
-      { content: "今日は学校と病院に行きました。", dir: "right", date: "6/17(火)", time: "12:00" },
-      {
-        content: `ご協力ありがとうございます。
-
-では、詳しくお伺いしますね。
-
-① 学校には何時ごろから何時ごろまでいらっしゃいましたか？
-② 学校では誰と接触されましたか？（友人、先生など）
-③ マスクの着用はされていましたか？
-
-順番にお答えいただければ大丈夫です。`,
-        dir: "left",
-        date: "6/17(火)",
-        time: "12:00",
-      },
-      { content: "学校に朝9時から11時の間に通っていました。", dir: "right", date: "6/17(火)", time: "12:00" },
-      {
-        content: `ありがとうございます。
-
-では続けてお伺いしますね。
-
-学校では、誰と接触されましたか？
-たとえば、友人のお名前や関係、会話の有無など、わかる範囲で教えてください。`,
-        dir: "left",
-        date: "6/17(火)",
-        time: "12:00",
-      },
+      { content: "わかりました。よろしくお願いします。", dir: "right", date: "6/17(火)", time: "12:00" },
     ]);
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollRef.current?.scrollIntoView({});
   }, [msgs]);
 
   const getFormattedDate = () => {
@@ -106,7 +80,7 @@ const TbDialogueWizard = () => {
         exit={{ opacity: 0, x: -40 }}
       >
         <Card className="flex flex-col flex-1 shadow">
-          <CardContent className="flex flex-col p-0" style={{ height: "calc(100vh - 158px)" }}>
+          <CardContent className="flex flex-col p-0 justify-between" style={{ height: "calc(100vh - 158px)" }}>
             <div className="overflow-y-auto px-6 pt-6 space-y-4 pb-4">
               {msgs.map((msg, idx) => (
                 <div key={idx} className={`flex items-end gap-2 ${msg.dir === "right" ? "justify-end" : "justify-start"}`}>

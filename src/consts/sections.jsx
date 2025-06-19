@@ -1,6 +1,6 @@
 // Form schema definitions
 import ageOptions from "./ageOptions";
-import patientReasons from "./patientReasons";
+import patientReasons, { patientReasonsHospital } from "./patientReasons";
 
 const symptomCondition = (d) => {
   if (!["investigation", "contactPossible", "unknown"].includes(d.requestReason)) return true;
@@ -303,34 +303,35 @@ const sections = [
         required: true,
         options: [
           { value: "healthy", label: "健康 (定期的な通院等なし)" },
-          { value: "underTreat", label: "通院中、ないし、入院歴あり" },
+          { value: "underTreat", label: "症状あり (未通院)" },
+          { value: "underHospital", label: "通院中" },
           { value: "other", label: "その他・わからない" },
         ],
         children: [
-          {
-            id: "comorbidities",
-            label: "当てはまるものを全て選んで下さい",
-            type: "checkbox",
-            options: [
-              { value: "diabetes", label: "糖尿病" },
-              { value: "cancer", label: "がん・悪性腫瘍" },
-              { value: "pneumoconiosis", label: "塵肺" },
-              { value: "gastrectomy", label: "胃切除手術後" },
-              { value: "immunosuppressant", label: "免疫抑制剤の使用" },
-              { value: "pregnant", label: "妊娠中" },
-              { value: "other", label: "その他", inputs: ["otherComorbidity"] },
-            ],
-            conditionalValue: "underTreat",
-            children: [
-              {
-                id: "otherComorbidity",
-                label: "",
-                type: "text",
-                placeholder: "具体的に",
-                conditionalValue: "other",
-              },
-            ],
-          },
+          // {
+          //   id: "comorbidities",
+          //   label: "当てはまるものを全て選んで下さい",
+          //   type: "checkbox",
+          //   options: [
+          //     { value: "diabetes", label: "糖尿病" },
+          //     { value: "cancer", label: "がん・悪性腫瘍" },
+          //     { value: "pneumoconiosis", label: "塵肺" },
+          //     { value: "gastrectomy", label: "胃切除手術後" },
+          //     { value: "immunosuppressant", label: "免疫抑制剤の使用" },
+          //     { value: "pregnant", label: "妊娠中" },
+          //     { value: "other", label: "その他", inputs: ["otherComorbidity"] },
+          //   ],
+          //   conditionalValue: "underTreat",
+          //   children: [
+          //     {
+          //       id: "otherComorbidity",
+          //       label: "",
+          //       type: "text",
+          //       placeholder: "具体的に",
+          //       conditionalValue: "other",
+          //     },
+          //   ],
+          // },
           {
             id: "otherHealthStatus",
             label: "",
@@ -338,51 +339,62 @@ const sections = [
             placeholder: "例: 通院はしていないが調子が悪い",
             conditionalValue: "other",
           },
-        ],
-      },
-      {
-        id: "otherSymptom",
-        label: "その他症状",
-        placeholder: "複数ある場合は列挙して下さい",
-        type: "text",
-      },
-      {
-        id: "symptomSince",
-        label: "「せき」や「たん」といった症状は、いつから続いていますか？",
-        type: "radio",
-        required: true,
-        options: [
-          { value: "none", label: "特に症状はない" },
-          { value: "since-1w", label: "1～2週間前から" },
-          { value: "since-2w", label: "2～3週間前から" },
-          { value: "since-mt1m", label: "1ヶ月以上前から" },
-          { value: "other", label: "その他・わからない" },
-        ],
-        conditional: (d) => patientReasons.includes(d.requestReason),
-        children: [
           {
-            id: "symptomSinceDetailed",
-            label: "より詳しく記入してください",
-            type: "text",
-            placeholder: "○○年○○月頃から",
-            conditionalValue: "since-mt1m",
+            id: "symptomSince",
+            label: "「せき」や「たん」といった症状は、いつから続いていますか？",
+            type: "radio",
             required: true,
+            options: [
+              { value: "none", label: "特に症状はない" },
+              { value: "since-1w", label: "1～2週間前から" },
+              { value: "since-2w", label: "2～3週間前から" },
+              { value: "since-mt1m", label: "1ヶ月以上前から" },
+              { value: "other", label: "その他・わからない" },
+            ],
+            conditional: (d) => ["underTreat", "underHospital"].includes(d.healthStatus),
+            children: [
+              {
+                id: "symptomSinceDetailed",
+                label: "より詳しく記入してください",
+                type: "text",
+                placeholder: "○○年○○月頃から",
+                conditionalValue: "since-mt1m",
+                required: true,
+              },
+            ],
+          },
+          {
+            id: "otherSymptom",
+            label: "その他に症状はありますか？",
+            placeholder: "場合は列挙して下さい",
+            type: "text",
+            conditional: (d) => ["underTreat", "underHospital"].includes(d.healthStatus),
+          },
+
+          {
+            id: "regularVisits",
+            label: "定期的な通院先の医療機関を教えて下さい",
+            type: "text",
+            placeholder: "複数ある場合は列挙して下さい",
+            conditional: (d) => ["underHospital"].includes(d.healthStatus),
+          },
+
+          {
+            id: "oralMedication",
+            label: "内服薬",
+            placeholder: "薬の名前か種類",
+            type: "list",
+            conditional: (d) => ["underHospital"].includes(d.healthStatus),
           },
         ],
       },
-      {
-        id: "regularVisits",
-        label: "定期的な通院先の医療機関があれば教えて下さい",
-        type: "text",
-        placeholder: "複数ある場合は列挙して下さい",
-        conditional: (d) => patientReasons.includes(d.requestReason),
-      },
+
       {
         id: "medicalInstitutions",
         label: "今回結核の診断をした医療機関を教えて下さい",
         type: "text",
         placeholder: "複数の医療機関を受診していた場合は列挙して下さい",
-        conditional: (d) => patientReasons.includes(d.requestReason),
+        conditional: (d) => patientReasonsHospital.includes(d.requestReason),
       },
       {
         id: "hospitalizations",
@@ -611,12 +623,6 @@ const sections = [
         label: "体重",
         type: "text",
         placeholder: "例: 約50kg",
-      },
-      {
-        id: "oralMedication",
-        label: "内服薬",
-        placeholder: "薬の名前か種類",
-        type: "list",
       },
     ],
   },
