@@ -5,7 +5,7 @@ import Field from "./components/ui/field";
 import { motion } from "framer-motion";
 import sections from "./consts/sections";
 import patientReasons from "./consts/patientReasons";
-import { CloudCog } from "lucide-react";
+import sendRequest from "./apis";
 
 export default function TbQuestionnaireWizard() {
   const [showOptions, setShowOptions] = useState({
@@ -64,7 +64,7 @@ export default function TbQuestionnaireWizard() {
   });
   const [inputError, setInputError] = useState({});
   const [validationError, setValidationError] = useState({});
-  const [showData, setShowData] = useState(false);
+  const [isSubmiting, setIsSubmitting] = useState(false);
 
   const validateFields = (fields, parentId = "root") => {
     let isValid = true;
@@ -146,11 +146,18 @@ export default function TbQuestionnaireWizard() {
     setStep((s) => Math.min(s + 1, sections.length - 1));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // 送信処理
-    document.getElementById("formData").style.display = "block";
+    if (isSubmiting) return;
+    setIsSubmitting(true);
+    const res = await sendRequest({ data: formData }, "POST", "user");
+
+    if (!res) {
+      setIsSubmitting(false);
+      return;
+    }
+    localStorage.setItem("tbq-sessionId", JSON.stringify(res.insertId));
     location.href = "#/dialogue";
-    setShowData(true);
   };
 
   const cur = sections[step];

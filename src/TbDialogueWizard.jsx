@@ -2,26 +2,48 @@ import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import sendRequest from "./apis";
+
 import avartar from "./assets/img/avatar.jpg";
 
 const TbDialogueWizard = () => {
   const [msgs, setMsgs] = useState([]);
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(0);
 
   useEffect(() => {
-    setMsgs([
-      {
-        content: `ご回答頂いた内容について、質問
-宜しいでしょうか。なお、対話を終了
-されたい際は、右下の終了ボタンで
-いつでも終了できます。`,
-        dir: "left",
-        date: "6/17(火)",
-        time: "12:00",
-      },
-      { content: "わかりました。よろしくお願いします。", dir: "right", date: "6/17(火)", time: "12:00" },
-    ]);
+    const id = localStorage.getItem("tbq-sessionId");
+    if (!id) {
+      location.href = "#/questionnaire";
+      return;
+    }
+    setSessionId(id);
+    const fetchData = async () => {
+      const savedMsgs = await sendRequest({}, "GET", `messages/${id}`);
+      if (!savedMsgs) return;
+      console.log("savedMsgs:", savedMsgs);
+
+      setMsgs([
+        {
+          content: `ご回答頂いた内容について、質問
+  宜しいでしょうか。なお、対話を終了
+  されたい際は、右下の終了ボタンで
+  いつでも終了できます。`,
+          dir: "left",
+          date: getFormattedDate(),
+          time: getCurrentTime(),
+        },
+        ...savedMsgs.map((row) => ({
+          content: row.content,
+          dir: row.role === "user" ? "right" : "left",
+          date: getFormattedDate(),
+          time: getCurrentTime(),
+        })),
+      ]);
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -44,23 +66,45 @@ const TbDialogueWizard = () => {
     return `${hours}:${minutes}`;
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       const content = inputRef.current.innerText.trim();
-      if (content) {
-        const now = new Date();
-        setMsgs((prev) => [
-          ...prev,
-          {
-            dir: "right",
+      if (!content) return;
+      if (isLoading) return;
+
+      setMsgs((prev) => [
+        ...prev,
+        {
+          dir: "right",
+          content,
+          date: getFormattedDate(),
+          time: getCurrentTime(),
+        },
+      ]);
+      inputRef.current.innerText = "";
+
+      setIsLoading(true);
+
+      const res = await sendRequest(
+        {
+          sessionId: sessionId,
+          message: {
+            role: "user",
             content,
-            date: getFormattedDate(),
-            time: getCurrentTime(),
           },
-        ]);
-        inputRef.current.innerText = "";
-      }
+        },
+        "POST",
+        "chat"
+      );
+
+      setIsLoading(false);
+
+      if (!res) return;
+
+      const reply = res.reply;
+
+      setMsgs((prev) => [...prev, { dir: "left", content: reply, date: getFormattedDate(), time: getCurrentTime() }]);
     }
   };
 
