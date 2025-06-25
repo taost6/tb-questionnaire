@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+
+    # ─── DB INITIALISATION ─────────────────────────────────────────────
+    environment:
+      MYSQL_ROOT_PASSWORD: root123          # ← root account (only for admin ops)
+      MYSQL_DATABASE: tbq_backend           # ← DB created automatically
+      MYSQL_USER: tbquser                   # ← app account
+      MYSQL_PASSWORD: tbq123                # ← app account password
+
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./server/tbq-backend.sql:/docker-entrypoint-initdb.d/tbq-backend.sql:ro
+
+  server:
+    build: ./server
+    container_name: backend
+    restart: always
+    ports:
+      - "3000:3000"
+
+    # Load exactly the same values the app expects
+    env_file:
+      - ./server/.env
+
+    depends_on:
+      - mysql
+
+  client:
+    build: ./client
+    container_name: frontend
+    ports:
+      - "4173:4173"
+    depends_on:
+      - server
+
+volumes:
+  mysql-data:
