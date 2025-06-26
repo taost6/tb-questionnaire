@@ -65,8 +65,8 @@ cd tb-questionnaire
 ### 2. コンテナの構築と開始
 
 ```bash
-docker compose down -v          # optional: clean existing volumes
-docker compose up --build -d    # build and start in background
+docker-compose down -v          # optional: clean existing volumes
+docker-compose up --build -d    # build and start in background
 ```
 
 ### Frontend
