@@ -7,10 +7,8 @@ const API_KEY = process.env.OPENROUTER_API_KEY;
 // const API_KEY = process.env.DEEPSEEK_API_KEY;
 
 const openai = new OpenAI({
-    // apiKey: API_KEY,
-    apiKey: "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",
+    apiKey: API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
-    // baseURL: "https://api.deepseek.com",
     defaultHeaders: {
         "HTTP-Referer": "http://localhost",
         "X-Title": "TB-Questionnaire",
