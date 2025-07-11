@@ -1,7 +1,6 @@
 import axios from "axios";
 
 export const sendRequest = async (data = {}, method = "GET", url = "", requireAuth = false) => {
-  console.log(import.meta.env);
   try {
     const Authorization = requireAuth
       ? {
@@ -28,8 +27,9 @@ export const sendRequest = async (data = {}, method = "GET", url = "", requireAu
     return false;
   } catch (e) {
     console.log(e);
-    alert("Something went wrong.");
-    return e?.response?.data;
+    if (e?.response?.data) alert(e.response.data.error);
+    else alert("Something went wrong.");
+    return false;
   }
 };
 
