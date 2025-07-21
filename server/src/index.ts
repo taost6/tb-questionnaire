@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { insertQuery, getQuery } from "./db";
 import { getCurrentDate, getCurrentDateTime, getUserInfoMsg } from "./helper";
 import { getChat } from "./gptHelper";
@@ -9,6 +11,7 @@ import { getChat } from "./gptHelper";
 const PORT = process.env.PORT;
 // const API_KEY = process.env.OPENAI_API_KEY;
 const API_KEY = process.env.OPENROUTER_API_KEY;
+const JWT_SECRET = process.env.JWT_SECRET || "tbq-pass2025"; // Secret key for JWT
 
 const app = express();
 app.use(cors());
@@ -115,6 +118,73 @@ app.post("/api/chat", async (req, res) => {
     }
 
     res.json({ reply: chat.res });
+});
+
+app.post("/api/admin/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        res.status(400).json({ error: "メールアドレスとパスワードを入力してください" });
+        return;
+    }
+
+    const admin = await getQuery("admins", `email = '${email}'`);
+    if (!admin || admin.length === 0) {
+        res.status(401).json({ error: "メールアドレスまたはパスワードが正しくありません" });
+        return;
+    }
+    const isPasswordValid = await bcrypt.compare(password, admin[0].password);
+    if (!isPasswordValid) {
+        res.status(401).json({ error: "メールアドレスまたはパスワードが正しくありません" });
+        return;
+    }
+
+    const token = jwt.sign({ id: admin[0].id, email: admin[0].email }, JWT_SECRET, { expiresIn: "1h" });
+    res.json({ success: true, message: "サインイン成功", token, name: admin[0].name });
+});
+
+app.get("/api/users", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        res.status(401).json({ error: "Unauthorized access" });
+        return;
+    }
+
+    const token = authHeader.split(" ")[1];
+    try {
+        jwt.verify(token, JWT_SECRET); // Verify the token
+    } catch (err) {
+        res.status(401).json({ error: "Invalid token", errorType: "auth" });
+        return;
+    }
+
+    const rows = await getQuery("users");
+    if (!rows) {
+        res.status(500).json({ error: "Failed to fetch users" });
+        return;
+    }
+
+    // Await all user objects with their final message
+    const users = await Promise.all(rows.map(async (row) => {
+        const content = row.content ? JSON.parse(row.content) : {};
+        const messages = await getQuery("messages", `session_id = '${row.id}'`, [{ field: "timestamp", dir: "ASC" }]);
+        let finalMessage = null;
+        if (messages && messages.length > 0) {
+            const found = messages.find(msg => msg.content && msg.content.includes("{{ Final }}"));
+            if (found) {
+                // Remove "{{ Final }}" from the content
+                finalMessage = found.content.replace("{{ Final }}", "").trim();
+            }
+        }
+
+        return {
+            ...row,
+            content,
+            finalMessage
+        }
+    }));
+
+    res.json({ success: true, data: users });
 });
 
 app.listen(PORT, () => {

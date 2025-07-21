@@ -8,6 +8,7 @@ import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 
 import avartar from "./assets/img/avatar.jpg";
 import bgImage from "./assets/img/banner-background.webp";
+import Header from "./components/ui/header";
 
 const TbDialogueWizard = () => {
     const [msgs, setMsgs] = useState([]);
@@ -16,6 +17,7 @@ const TbDialogueWizard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [sessionId, setSessionId] = useState(0);
     const [options, setOptions] = useState([]);
+    const [singleChoice, setSingleChoice] = useState(false);
 
     useEffect(() => {
         const id = localStorage.getItem("tbq-sessionId");
@@ -29,10 +31,13 @@ const TbDialogueWizard = () => {
             setIsLoading(true);
             const savedMsgs = await sendRequest({}, "GET", `messages/${id}`);
             if (!savedMsgs) return;
+            setSingleChoice(false);
             if (savedMsgs.length > 0) {
                 const last = savedMsgs[savedMsgs.length - 1];
                 const matches = [...last.content.matchAll(/{{(.*?)}}/g)].map(m => m[1]);
-                setOptions(matches);
+                const isSingleQuestion = matches.find(m => m.trim() === "Single");
+                if (isSingleQuestion) setSingleChoice(true);
+                setOptions(matches.filter(m => m.trim() !== "Single" && m.trim() !== "Final"));
             }
             setMsgs([
                 ...savedMsgs.map((row) => ({
@@ -104,8 +109,11 @@ const TbDialogueWizard = () => {
 
         const reply = res.reply;
 
+        setSingleChoice(false);
         const matches = [...reply.matchAll(/{{(.*?)}}/g)].map(m => m[1]);
-        setOptions(matches);
+        const isSingleQuestion = matches.find(m => m.trim() === "Single");
+        if (isSingleQuestion) setSingleChoice(true);
+        setOptions(matches.filter(m => m.trim() !== "Single" && m.trim() !== "Final"));
 
         setMsgs((prev) => [...prev, { dir: "left", content: reply, date: getFormattedDate(), time: getCurrentTime() }]);
     }
@@ -160,12 +168,7 @@ const TbDialogueWizard = () => {
         //     backgroundSize: `cover`
         // }}>
         <div className="flex flex-col max-w-3xl mx-auto p-4 h-screen">
-            <div>
-                <h1 className="text-2xl font-bold mb-4">結核問診票 / Tuberculosis Questionnaire</h1>
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                    <div className="bg-blue-600 h-2 rounded-full w-full" />
-                </div>
-            </div>
+            <Header />
 
             <motion.div
                 className="flex flex-col flex-1 overflow-hidden"
@@ -187,11 +190,14 @@ const TbDialogueWizard = () => {
                                             let currentContent = inputRef.current.innerText.trim();
                                             if (currentContent != "") currentContent += ", ";
                                             inputRef.current.innerText = currentContent + option;
+                                            if (singleChoice) {
+                                                sendMsg();
+                                            }
                                         }}>{option}</button>
                                     ))
                                 }
                             </div>
-                            <div className={`flex items-end ${isLoading ? "disabled" : ""}`}>
+                            <div className={`flex items-end ${isLoading || singleChoice ? "hidden" : ""}`}>
                                 <div
                                     ref={inputRef}
                                     contentEditable

@@ -4,8 +4,8 @@ export const sendRequest = async (data = {}, method = "GET", url = "", requireAu
   try {
     const Authorization = requireAuth
       ? {
-          Authorization: `Bearer ${localStorage.getItem("tbq-auth")}`,
-        }
+        Authorization: `Bearer ${localStorage.getItem("tbq-authToken")}`,
+      }
       : {};
     const req = {
       headers: {
@@ -27,7 +27,12 @@ export const sendRequest = async (data = {}, method = "GET", url = "", requireAu
     return false;
   } catch (e) {
     console.log(e);
-    if (e?.response?.data) alert(e.response.data.error);
+    if (e?.response?.data?.error) {
+      if (e.response.data.errorType === "auth") {
+        return e.response.data;
+      }
+      alert(e.response.data.error);
+    }
     else alert("Something went wrong.");
     return false;
   }

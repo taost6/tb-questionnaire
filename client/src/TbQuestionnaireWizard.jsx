@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import sections from "./consts/sections";
 import patientReasons from "./consts/patientReasons";
 import sendRequest from "./apis";
+import { symptomCondition } from "./consts/symptomCondition";
 
 export default function TbQuestionnaireWizard() {
   const [showOptions, setShowOptions] = useState({
@@ -202,7 +203,7 @@ export default function TbQuestionnaireWizard() {
         <Button variant="outline" onClick={() => setStep((s) => Math.max(s - 1, 0))} disabled={step === 0}>
           戻る
         </Button>
-        {step < sections.length - 1 ? <Button onClick={handleNext}>次へ</Button> : <Button onClick={handleSubmit}>提出</Button>}
+        {step === sections.length - 1 || (step === sections.length - 2 && !symptomCondition(formData)) ? <Button onClick={handleSubmit}>提出</Button> : <Button onClick={handleNext}>次へ</Button>}
       </div>
       <pre
         className="mt-6 text-xs bg-gray-100 p-2 rounded leading-tight overflow-x-auto"
