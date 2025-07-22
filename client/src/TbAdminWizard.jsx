@@ -20,6 +20,7 @@ const TbAdminWizard = () => {
         updated_at: "",
     });
     const [selectedUser, setSelectedUser] = useState(null);
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
     useEffect(() => {
         const adminInfo = localStorage.getItem("tbq-adminInfo");
@@ -76,6 +77,14 @@ const TbAdminWizard = () => {
         setSelectedUser(null);
     };
 
+    const handleSort = (key) => {
+        setSortConfig((prev) => {
+            if (prev.key === key) {
+                return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+            }
+            return { key, direction: "asc" };
+        });
+    };
 
     const filteredUsers = users.filter((user) => {
         return (
@@ -103,6 +112,22 @@ const TbAdminWizard = () => {
                     .includes(searchFilters.updated_at))
         );
     });
+
+    const sortedUsers = (() => {
+        if (!sortConfig.key) return filteredUsers;
+        const sorted = [...filteredUsers].sort((a, b) => {
+            let aValue = a[sortConfig.key];
+            let bValue = b[sortConfig.key];
+            if (sortConfig.key === "birthDate" || sortConfig.key === "updated_at") {
+                aValue = new Date(aValue);
+                bValue = new Date(bValue);
+            }
+            if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    })();
 
     return (
         <div className="flex flex-col w-screen mx-auto p-4 h-screen">
@@ -176,16 +201,34 @@ const TbAdminWizard = () => {
                                 </TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell>名前</TableCell>
-                                <TableCell>メールアドレス</TableCell>
-                                <TableCell>電話番号</TableCell>
-                                <TableCell>性別</TableCell>
-                                <TableCell>誕生日</TableCell>
-                                <TableCell>更新日</TableCell>
+                                <TableCell onClick={() => handleSort("name")} className="cursor-pointer select-none">
+                                    名前
+                                    {sortConfig.key === "name" && (sortConfig.direction === "asc" ? " ▲" : " ▼")}
+                                </TableCell>
+                                <TableCell onClick={() => handleSort("email")} className="cursor-pointer select-none">
+                                    メールアドレス
+                                    {sortConfig.key === "email" && (sortConfig.direction === "asc" ? " ▲" : " ▼")}
+                                </TableCell>
+                                <TableCell onClick={() => handleSort("phone")} className="cursor-pointer select-none">
+                                    電話番号
+                                    {sortConfig.key === "phone" && (sortConfig.direction === "asc" ? " ▲" : " ▼")}
+                                </TableCell>
+                                <TableCell onClick={() => handleSort("sex")} className="cursor-pointer select-none">
+                                    性別
+                                    {sortConfig.key === "sex" && (sortConfig.direction === "asc" ? " ▲" : " ▼")}
+                                </TableCell>
+                                <TableCell onClick={() => handleSort("birthDate")} className="cursor-pointer select-none">
+                                    誕生日
+                                    {sortConfig.key === "birthDate" && (sortConfig.direction === "asc" ? " ▲" : " ▼")}
+                                </TableCell>
+                                <TableCell onClick={() => handleSort("updated_at")} className="cursor-pointer select-none">
+                                    更新日
+                                    {sortConfig.key === "updated_at" && (sortConfig.direction === "asc" ? " ▲" : " ▼")}
+                                </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {filteredUsers
+                            {sortedUsers
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((user) => (
                                     <TableRow key={user.id} onClick={() => handleRowClick(user)} className="cursor-pointer hover:bg-gray-100">

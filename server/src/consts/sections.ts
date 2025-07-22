@@ -1,11 +1,7 @@
 // Form schema definitions
 import ageOptions from "./ageOptions";
 import patientReasons, { patientReasonsHospital } from "./patientReasons";
-
-const symptomCondition = (d: any) => {
-  if (!["investigation", "contactPossible", "unknown"].includes(d.requestReason)) return true;
-  return d.cough2w === "yes";
-};
+import { symptomCondition } from "./symptomCondition";
 
 const sections = [
   {
@@ -136,10 +132,10 @@ const sections = [
             type: "radio",
             conditionalValue: "foreigner",
             options: [
-              { label: "上級", value: "4" },
-              { label: "中級", value: "3" },
-              { label: "初級", value: "2" },
-              { label: "挨拶程度", value: "1" },
+              { label: "流暢に話せる", value: "4" },
+              { label: "簡単な会話ができる", value: "3" },
+              { label: "簡単な単語やフレーズだけわかる", value: "2" },
+              { label: "まったくわからない", value: "1" },
               { label: "その他・分からない", value: "-1" },
             ],
           },
@@ -356,11 +352,55 @@ const sections = [
           },
 
           {
+            id: "diseaseName",
+            label: "病気や疾患がある場合はお知らせください",
+            type: "text",
+            placeholder: "複数ある場合は列挙して下さい",
+            conditional: (d: any) => ["underHospital"].includes(d.healthStatus),
+          },
+
+          {
             id: "oralMedication",
             label: "内服薬",
             placeholder: "薬の名前か種類",
             type: "list",
             conditional: (d: any) => ["underHospital"].includes(d.healthStatus),
+          },
+        ],
+      },
+      {
+        id: "nonPatientTreated",
+        label: "その「せき」や「たん」について、検査や治療を受けていますか？",
+        type: "radio",
+        options: [
+          { value: "yes", label: "はい" },
+          { value: "no", label: "いいえ" },
+          { value: "unknown", label: "分からない" },
+        ],
+        conditional: (d: any) => ["underTreat"].includes(d.healthStatus),
+      },
+      {
+        id: "respiratoryHistory",
+        label: "過去２年間で、喘息など、何らかの呼吸器疾患といわれたことがありますか？",
+        type: "checkbox",
+        options: [
+          { value: "tb", label: "結核" },
+          { value: "asthma", label: "喘息" },
+          { value: "infiltration", label: "肺浸潤" },
+          { value: "pleuritis", label: "胸膜炎" },
+          { value: "peritonitis", label: "肋膜炎" },
+          { value: "lymph", label: "頚部リンパ節結核等" },
+          { value: "other", label: "その他", inputs: ["otherRespiratory"] },
+        ],
+        conditional: (d: any) => ["since-2w", "since-mt1m", "other"].includes(d.symptomSince),
+        children: [
+          {
+            id: "otherRespiratory",
+            label: "",
+            placeholder: "具体的に",
+            type: "text",
+            conditionalValue: "other",
+            required: true,
           },
         ],
       },
@@ -425,73 +465,6 @@ const sections = [
             type: "text",
             placeholder: "○○年○○月頃、時々会っていた友人が発症した",
             conditionalValue: "yes",
-          },
-        ],
-      },
-
-      // --- 患者以外に聴取 ---
-      {
-        id: "cough2w",
-        label: "この２週間以上「せき」や「たん」が続いていますか？",
-        type: "radio",
-        required: true,
-        options: [
-          { value: "yes", label: "はい" },
-          { value: "no", label: "いいえ" },
-          { value: "unknown", label: "分からない" },
-        ],
-        conditional: (d: any) => !patientReasons.includes(d.requestReason),
-        children: [
-          {
-            id: "nonPatientSince",
-            label: "症状はいつごろから生じていますか？",
-            type: "radio",
-            options: [
-              { value: "lt1m", label: "１か月未満" },
-              { value: "1to2m", label: "１か月以上２か月未満" },
-              { value: "2to3m", label: "２か月以上３か月未満" },
-              { value: "3to6m", label: "３か月以上６か月未満" },
-              { value: "gt6m", label: "６か月以上" },
-              { value: "unk", label: "よく分からない" },
-            ],
-            conditionalValue: "yes",
-            required: true,
-          },
-          {
-            id: "nonPatientTreated",
-            label: "その「せき」や「たん」について、検査や治療を受けていますか？",
-            type: "radio",
-            options: [
-              { value: "yes", label: "はい" },
-              { value: "no", label: "いいえ" },
-              { value: "unknown", label: "分からない" },
-            ],
-            conditionalValue: "yes",
-            required: true,
-          },
-          {
-            id: "respiratoryHistory",
-            label: "過去２年間で、喘息など、何らかの呼吸器疾患といわれたことがありますか？",
-            type: "checkbox",
-            options: [
-              { value: "asthma", label: "喘息" },
-              { value: "infiltration", label: "肺浸潤" },
-              { value: "pleuritis", label: "胸膜炎" },
-              { value: "peritonitis", label: "肋膜炎" },
-              { value: "lymph", label: "頚部リンパ節結核等" },
-              { value: "other", label: "その他", inputs: ["otherRespiratory"] },
-            ],
-            conditionalValue: "yes",
-            children: [
-              {
-                id: "otherRespiratory",
-                label: "",
-                placeholder: "具体的に",
-                type: "text",
-                conditionalValue: "other",
-                required: true,
-              },
-            ],
           },
         ],
       },

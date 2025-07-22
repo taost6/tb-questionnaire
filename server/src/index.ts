@@ -1,31 +1,19 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import OpenAI from "openai";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { insertQuery, getQuery } from "./db";
 import { getCurrentDate, getCurrentDateTime, getUserInfoMsg } from "./helper";
 import { getChat } from "./gptHelper";
+import { symptomCondition } from "./consts/symptomCondition";
 
 const PORT = process.env.PORT;
-// const API_KEY = process.env.OPENAI_API_KEY;
-const API_KEY = process.env.OPENROUTER_API_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || "tbq-pass2025"; // Secret key for JWT
+const JWT_SECRET = process.env.JWT_SECRET || "tbq-pass2025";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// const openai = new OpenAI({ apiKey: API_KEY });
-const openai = new OpenAI({
-    apiKey: API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
-    defaultHeaders: {
-        "HTTP-Referer": "http://localhost",
-        "X-Title": "TB-Questionnaire",
-    },
-});
 
 app.get("/api/messages/:sessionId", async (req, res) => {
     const { sessionId } = req.params;
@@ -139,7 +127,7 @@ app.post("/api/admin/login", async (req, res) => {
         return;
     }
 
-    const token = jwt.sign({ id: admin[0].id, email: admin[0].email }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: admin[0].id, email: admin[0].email }, JWT_SECRET, { expiresIn: "12h" });
     res.json({ success: true, message: "サインイン成功", token, name: admin[0].name });
 });
 
@@ -152,7 +140,7 @@ app.get("/api/users", async (req, res) => {
 
     const token = authHeader.split(" ")[1];
     try {
-        jwt.verify(token, JWT_SECRET); // Verify the token
+        jwt.verify(token, JWT_SECRET);
     } catch (err) {
         res.status(401).json({ error: "Invalid token", errorType: "auth" });
         return;
@@ -164,7 +152,6 @@ app.get("/api/users", async (req, res) => {
         return;
     }
 
-    // Await all user objects with their final message
     const users = await Promise.all(rows.map(async (row) => {
         const content = row.content ? JSON.parse(row.content) : {};
         const messages = await getQuery("messages", `session_id = '${row.id}'`, [{ field: "timestamp", dir: "ASC" }]);
@@ -172,14 +159,17 @@ app.get("/api/users", async (req, res) => {
         if (messages && messages.length > 0) {
             const found = messages.find(msg => msg.content && msg.content.includes("{{ Final }}"));
             if (found) {
-                // Remove "{{ Final }}" from the content
                 finalMessage = found.content.replace("{{ Final }}", "").trim();
             }
         }
 
+        let isPatient = false;
+        if (symptomCondition(content)) isPatient = true;
+
         return {
             ...row,
             content,
+            isPatient,
             finalMessage
         }
     }));

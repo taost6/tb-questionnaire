@@ -67,6 +67,28 @@ export default function TbQuestionnaireWizard() {
   const [validationError, setValidationError] = useState({});
   const [isSubmiting, setIsSubmitting] = useState(false);
 
+  // Sync step with browser history
+  useEffect(() => {
+    // On mount, set step from history state if available
+    const initialStep = window.history.state && typeof window.history.state.step === "number"
+      ? window.history.state.step
+      : 0;
+    setStep(initialStep);
+
+    const onPopState = (event) => {
+      const s = event.state && typeof event.state.step === "number" ? event.state.step : 0;
+      setStep(s);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  // Push step to history when changed by buttons
+  const goToStep = (newStep) => {
+    setStep(newStep);
+    window.history.pushState({ step: newStep }, "", "");
+  };
+
   const validateFields = (fields, parentId = "root") => {
     let isValid = true;
     let newInputError = {};
@@ -128,7 +150,6 @@ export default function TbQuestionnaireWizard() {
   };
 
   const handleNext = () => {
-    // setPage(p => p + 1);
     window.scrollTo(0, 0);
     let isValid, hasInputError, vError;
     [isValid, hasInputError, vError] = validateFields(sections[step].fields);
@@ -144,7 +165,13 @@ export default function TbQuestionnaireWizard() {
       }
       return;
     }
-    setStep((s) => Math.min(s + 1, sections.length - 1));
+    const nextStep = Math.min(step + 1, sections.length - 1);
+    goToStep(nextStep);
+  };
+
+  const handleBack = () => {
+    // Use browser back button for sync
+    window.history.back();
   };
 
   const handleSubmit = async () => {
@@ -200,7 +227,7 @@ export default function TbQuestionnaireWizard() {
         </Card>
       </motion.div>
       <div className="flex justify-between mt-6">
-        <Button variant="outline" onClick={() => setStep((s) => Math.max(s - 1, 0))} disabled={step === 0}>
+        <Button variant="outline" onClick={handleBack} disabled={step === 0}>
           戻る
         </Button>
         {step === sections.length - 1 || (step === sections.length - 2 && !symptomCondition(formData)) ? <Button onClick={handleSubmit}>提出</Button> : <Button onClick={handleNext}>次へ</Button>}

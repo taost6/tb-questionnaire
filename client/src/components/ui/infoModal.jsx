@@ -1,20 +1,20 @@
 import { Dialog, DialogTitle, DialogContent, IconButton, DialogActions, Button } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { exportExcel, exportJson, exportPdf } from "@/helper";
+import { exportExcel, exportJson, exportPdf, addString, calculateAge, formatJapaneseDate } from "@/helper";
 import patientReasons, { patientReasonsHospital } from "@/consts/patientReasons";
+import { symptomCondition } from "@/consts/symptomCondition";
 
 const InfoModal = ({ selectedUser, handleCloseModal }) => {
     if (!selectedUser) return null;
 
     const selectedContent = selectedUser.content || {};
 
-    const nationalityOptions = [
-        { value: "japan", label: "日本国籍" },
-        { value: "foreigner", label: "外国籍" },
-        { value: "other", label: "その他・分からない" },
-    ];
-
     const getNationalityLabel = (value) => {
+        const nationalityOptions = [
+            { value: "japan", label: "日本国籍" },
+            { value: "foreigner", label: "外国籍" },
+            { value: "other", label: "その他・分からない" },
+        ];
         const found = nationalityOptions.find(opt => opt.value === value);
         return found ? found.label : value || "";
     };
@@ -26,42 +26,18 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
         return getNationalityLabel(content.nationality);
     };
 
-    const calculateAge = (birthDate) => {
-        const today = new Date();
-        const birth = new Date(birthDate);
-        let age = today.getFullYear() - birth.getFullYear();
-        const monthDiff = today.getMonth() - birth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-            age--;
-        }
-        return age;
-    };
-
-    const formatJapaneseDate = (dateStr) => {
-        const date = new Date(dateStr);
-        const y = date.getFullYear();
-        const m = date.getMonth() + 1;
-        const d = date.getDate();
-        return `${y}年${m}月${d}日`;
-    };
-
-    // 日本語能力ラベル取得
-    const jpLevelOptions = [
-        { label: "流暢に話せる", value: "4" },
-        { label: "簡単な会話ができる", value: "3" },
-        { label: "簡単な単語やフレーズだけわかる", value: "2" },
-        { label: "まったくわからない", value: "1" },
-        { label: "その他・分からない", value: "-1" },
-    ];
     const getJpLevelLabel = (value) => {
+        // 日本語能力ラベル取得
+        const jpLevelOptions = [
+            { label: "流暢に話せる", value: "4" },
+            { label: "簡単な会話ができる", value: "3" },
+            { label: "簡単な単語やフレーズだけわかる", value: "2" },
+            { label: "まったくわからない", value: "1" },
+            { label: "その他・分からない", value: "-1" },
+        ];
         const found = jpLevelOptions.find(opt => opt.value === String(value));
         return found ? found.label : value || "";
     };
-
-    const addString = (str, suffix) => {
-        if (str) str += "、";
-        return str + suffix;
-    }
 
     const getOccupationLabel = (value) => {
         // 職業区分ラベル取得
@@ -147,22 +123,22 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
             ];
             const relationFound = relationOptions.find(opt => opt.value === content.contactRelation);
             if (relationFound) {
-                result += `患者との関係: (${relationFound.label})`;
+                result = addString(result, `患者との関係: ${relationFound.label}`);
                 if (["living", "work"].includes(content.contactRelation) && content.contactPatientName) {
-                    result += `、患者の名前: ${content.contactPatientName}`;
+                    result = addString(result, `患者の名前: ${content.contactPatientName}`);
                 }
                 if (["work", "unknownRelation"].includes(content.contactRelation) && content.contactDuration) {
-                    result += `、接触期間・状況: ${content.contactDuration}`;
+                    result = addString(result, `接触期間・状況: ${content.contactDuration}`)
                 }
                 if (content.contactRelation === "otherRelation" && content.contactRelationOther) {
-                    result += `、その他: ${content.contactRelationOther}`;
+                    result = addString(result, `その他: ${content.contactRelationOther}`)
                 }
             }
         }
 
         if (content.requestReason === "healthCheck") {
-            if (content.checkupType) result += `、健康診断の種類: ${content.checkupType}`;
-            if (content.checkupDate) result += `、検診日: ${formatJapaneseDate(content.checkupDate)}`;
+            if (content.checkupType) result = addString(result, `健康診断の種類: ${content.checkupType}`);
+            if (content.checkupDate) result = addString(result, `検診日: ${formatJapaneseDate(content.checkupDate)}`);
         }
         return result;
     }
@@ -353,8 +329,7 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
         ];
         return options.reduce((acc, option) => {
             if (content[option.name]) {
-                if (acc !== "") acc += "、";
-                acc += `${option.label}: ${option.name}`;
+                acc = addString(acc, `${option.label}: ${option.name}`);
             }
             return acc;
         }, "");
@@ -405,44 +380,44 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                         </thead>
                         <tbody>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">名前</td>
-                                <td className="border border-gray-200 p-2">{selectedUser.name}</td>
-                                <td className="border border-gray-200 p-2 text-center">氏名カナ</td>
-                                <td className="border border-gray-200 p-2">{selectedUser.furiganaName}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">名前</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedUser.name}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">氏名カナ</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedUser.furiganaName}</td>
                             </tr>
                             <tr>
-                                <td className="border border-gray-200 p-2 text-center">性別</td>
-                                <td className="border border-gray-200 p-2">{selectedUser.sex === "male" ? "男性" : selectedUser.sex === "female" ? "女性" : "その他"}</td>
-                                <td className="border border-gray-200 p-2 text-center">年齢</td>
-                                <td className="border border-gray-200 p-2">{selectedContent.age}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">性別</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedUser.sex === "male" ? "男性" : selectedUser.sex === "female" ? "女性" : "その他"}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">年齢</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.age}</td>
                             </tr>
                             <tr>
-                                <td className="border border-gray-200 p-2 text-center">住所</td>
-                                <td className="border border-gray-200 p-2">{selectedContent.addressPrefCity + " " + selectedContent.addressTown}</td>
-                                <td className="border border-gray-200 p-2 text-center">生年月日</td>
-                                <td className="border border-gray-200 p-2">{formatJapaneseDate(selectedUser.birthDate)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">住所</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.addressPrefCity + " " + selectedContent.addressTown}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">生年月日</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{formatJapaneseDate(selectedUser.birthDate)}</td>
                             </tr>
                             <tr>
-                                <td className="border border-gray-200 p-2 text-center">電話番号</td>
-                                <td className="border border-gray-200 p-2">{selectedUser.phone}</td>
-                                <td className="border border-gray-200 p-2 text-center">連絡がつきやすい時間帯</td>
-                                <td className="border border-gray-200 p-2">{selectedContent.connectDay ? selectedContent.connectDay : ""}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">電話番号</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedUser.phone}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">連絡がつきやすい時間帯</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.connectDay ? selectedContent.connectDay : ""}</td>
                             </tr>
                             <tr>
-                                <td className="border border-gray-200 p-2 text-center">国籍</td>
-                                <td className="border border-gray-200 p-2">{getNationalityDisplay(selectedContent)}</td>
-                                <td className="border border-gray-200 p-2 text-center">⽇本語能⼒</td>
-                                <td className="border border-gray-200 p-2">{getJpLevelLabel(selectedContent.jpLevel)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">国籍</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getNationalityDisplay(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">⽇本語能⼒</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getJpLevelLabel(selectedContent.jpLevel)}</td>
                             </tr>
                             <tr>
-                                <td className="border border-gray-200 p-2 text-center">職業区分</td>
-                                <td className="border border-gray-200 p-2">{getOccupationLabel(selectedContent.occupation)}</td>
-                                <td className="border border-gray-200 p-2 text-center">{getOccupationDetailLabel(selectedContent)}</td>
-                                <td className="border border-gray-200 p-2">{getOccupationDetailData(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">職業区分</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getOccupationLabel(selectedContent.occupation)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">{getOccupationDetailLabel(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getOccupationDetailData(selectedContent)}</td>
                             </tr>
                             <tr>
-                                <td className="border border-gray-200 p-2 text-center">問診依頼の経緯</td>
-                                <td className="border border-gray-200 p-2" colSpan="3">{getRequestReason(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">問診依頼の経緯</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getRequestReason(selectedContent)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -454,80 +429,80 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                         </thead>
                         <tbody>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">健康状態</td>
-                                <td className="border border-gray-200 p-2">{getHealthStatus(selectedContent)}</td>
-                                <td className="border border-gray-200 p-2 text-center">詳細</td>
-                                <td className="border border-gray-200 p-2">{getHealthStatusDetail(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">健康状態</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getHealthStatus(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getHealthStatusDetail(selectedContent)}</td>
                             </tr>
                             {
                                 patientReasonsHospital.includes(selectedContent.requestReason) && selectedContent.medicalInstitutions &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">今回結核の診断をした医療機関</td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.medicalInstitutions}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">今回結核の診断をした医療機関</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.medicalInstitutions}</td>
                                 </tr>
                             }
                             {
                                 patientReasons.includes(selectedContent.requestReason) && selectedContent.hospitalizations &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">この2年間で入院した医療機関</td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.hospitalizations}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">この2年間で入院した医療機関</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.hospitalizations}</td>
                                 </tr>
                             }
                             {
                                 patientReasons.includes(selectedContent.requestReason) && selectedContent.pastTb &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">結核既往歴</td>
-                                    <td className="border border-gray-200 p-2">{selectedContent.pastTb === "yes" ? "あり" : selectedContent.pastTb === "no" ? "なし" : "分からない"}</td>
-                                    <td className="border border-gray-200 p-2 text-center">詳細</td>
-                                    <td className="border border-gray-200 p-2">{getPastTbDetail(selectedContent)}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">結核既往歴</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.pastTb === "yes" ? "あり" : selectedContent.pastTb === "no" ? "なし" : "分からない"}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{getPastTbDetail(selectedContent)}</td>
                                 </tr>
                             }
                             {
                                 patientReasons.includes(selectedContent.requestReason) && selectedContent.contactWithTb &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">症状のある結核患者と接触したことがありますか？</td>
-                                    <td className="border border-gray-200 p-2">{selectedContent.contactWithTb === "yes" ? "あり" : selectedContent.contactWithTb === "no" ? "なし" : "分からない"}</td>
-                                    <td className="border border-gray-200 p-2 text-center">詳細</td>
-                                    <td className="border border-gray-200 p-2">{selectedContent.contactWithTbDetail}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">症状のある結核患者と接触したことがありますか？</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.contactWithTb === "yes" ? "あり" : selectedContent.contactWithTb === "no" ? "なし" : "分からない"}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.contactWithTbDetail}</td>
                                 </tr>
                             }
                             {
                                 !patientReasons.includes(selectedContent.requestReason) && selectedContent.regularCheckup &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">健康診断受診状況</td>
-                                    <td className="border border-gray-200 p-2">{getCheckupLabel(selectedContent)}</td>
-                                    <td className="border border-gray-200 p-2 text-center">検診にて要精密検査を指示されていますか？</td>
-                                    <td className="border border-gray-200 p-2">{getCheckupDetail(selectedContent)}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">健康診断受診状況</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{getCheckupLabel(selectedContent)}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">検診にて要精密検査を指示されていますか？</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{getCheckupDetail(selectedContent)}</td>
                                 </tr>
                             }
                             {
                                 !patientReasons.includes(selectedContent.requestReason) && selectedContent.tbMedication &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">結核治療薬内服</td>
-                                    <td className="border border-gray-200 p-2">{getTbMedic(selectedContent)}</td>
-                                    <td className="border border-gray-200 p-2 text-center">理由</td>
-                                    <td className="border border-gray-200 p-2">{selectedContent.tbMedicationReason}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">結核治療薬内服</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{getTbMedic(selectedContent)}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">理由</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.tbMedicationReason}</td>
                                 </tr>
                             }
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">BCG接種歴</td>
-                                <td className="border border-gray-200 p-2">{getOptions(selectedContent.bcg, [
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">BCG接種歴</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getOptions(selectedContent.bcg, [
                                     { value: "yes", label: "あり" },
                                     { value: "no", label: "なし" },
                                     { value: "other", label: "その他・分からない" },
                                 ])}</td>
-                                <td className="border border-gray-200 p-2 text-center">理由</td>
-                                <td className="border border-gray-200 p-2">{getBcgReason(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">理由</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getBcgReason(selectedContent)}</td>
                             </tr>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">身⾧</td>
-                                <td className="border border-gray-200 p-2">{selectedContent.height}</td>
-                                <td className="border border-gray-200 p-2 text-center">体重</td>
-                                <td className="border border-gray-200 p-2">{selectedContent.weight}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">身⾧</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.height}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">体重</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.weight}</td>
                             </tr>
                         </tbody>
                     </table>
-                    <table className="min-w-full border-collapse border border-gray-200">
+                    <table className="min-w-full border-collapse mb-4 border border-gray-200">
                         <thead>
                             <tr>
                                 <th colSpan="4" className="border border-green-500 p-2 bg-green-500 text-white">ライフスタイル</th>
@@ -535,101 +510,130 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                         </thead>
                         <tbody>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">住まい・⽣活状況 </td>
-                                <td className="border border-gray-200 p-2">{getOptions(selectedContent.livingSituation, [
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">住まい・⽣活状況 </td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getOptions(selectedContent.livingSituation, [
                                     { value: "alone", label: "単身生活" },
                                     { value: "withFamily", label: "家族や知人と同居" },
                                     { value: "facility", label: "老健・福祉施設等共同生活" },
                                     { value: "hospital", label: "医療機関入院中" },
                                     { value: "other", label: "その他" },
                                 ])}</td>
-                                <td className="border border-gray-200 p-2 text-center">詳細</td>
-                                <td className="border border-gray-200 p-2">{getLivingDetail(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getLivingDetail(selectedContent)}</td>
                             </tr>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">ホームレス経験  </td>
-                                <td className="border border-gray-200 p-2">{selectedContent.homeless ? "あり" : "なし"}</td>
-                                <td className="border border-gray-200 p-2 text-center">詳細</td>
-                                <td className="border border-gray-200 p-2">{getHomelessDetail(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">ホームレス経験  </td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.homeless ? "あり" : "なし"}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getHomelessDetail(selectedContent)}</td>
                             </tr>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">喫煙習慣</td>
-                                <td className="border border-gray-200 p-2">{selectedContent.smokes ? "あり" : "なし"}</td>
-                                <td className="border border-gray-200 p-2 text-center">飲酒習慣</td>
-                                <td className="border border-gray-200 p-2">{selectedContent.drinks ? "あり" : "なし"}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">喫煙習慣</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.smokes ? "あり" : "なし"}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">飲酒習慣</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.drinks ? "あり" : "なし"}</td>
                             </tr>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">家族/同居⼈の結核感染者（過去2年間） </td>
-                                <td className="border border-gray-200 p-2">{getOptions(selectedContent.familyTb, [
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">家族/同居⼈の結核感染者（過去2年間） </td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getOptions(selectedContent.familyTb, [
                                     { value: "yes", label: "いる" },
                                     { value: "no", label: "いない" },
                                     { value: "unknown", label: "その他・分からない" },
                                 ])}</td>
-                                <td className="border border-gray-200 p-2 text-center">詳細</td>
-                                <td className="border border-gray-200 p-2">{getFamilyTbDetail(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getFamilyTbDetail(selectedContent)}</td>
                             </tr>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">海外居住歴 </td>
-                                <td className="border border-gray-200 p-2">{getOptions(selectedContent.overseaStay, [
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">海外居住歴 </td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getOptions(selectedContent.overseaStay, [
                                     { value: "yes", label: "はい" },
                                     { value: "no", label: "いいえ" },
                                     { value: "unkown", label: "分からない" },
                                 ])}</td>
-                                <td className="border border-gray-200 p-2 text-center">詳細</td>
-                                <td className="border border-gray-200 p-2">{getOverseaDetail(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getOverseaDetail(selectedContent)}</td>
                             </tr>
                             <tr className="border border-gray-200">
-                                <td className="border border-gray-200 p-2 text-center">よく利用する店舗・施設 </td>
-                                <td className="border border-gray-200 p-2" colSpan="3">{getFacilities(selectedContent)}</td>
+                                <td className="border border-gray-200 p-2 text-center whitespace-pre-line">よく利用する店舗・施設 </td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getFacilities(selectedContent)}</td>
                             </tr>
                             {
                                 selectedContent.adultOtherPlaces &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">上記以外に月１回以上行くような場所 </td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.adultOtherPlaces}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">上記以外に月１回以上行くような場所 </td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.adultOtherPlaces}</td>
                                 </tr>
                             }
                             {
                                 selectedContent.adultLiveEvents &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">大勢の人が集まるような機会 </td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.adultLiveEvents}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">大勢の人が集まるような機会 </td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.adultLiveEvents}</td>
                                 </tr>
                             }
                             {
                                 selectedContent.elderlyShortStay &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">ショートステイ等、入所を伴う施設 </td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.elderlyShortStay === "yes" && "あり" + (selectedContent.elderlyShortStayDetail ? "、" + selectedContent.elderlyShortStayDetail : "")}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">ショートステイ等、入所を伴う施設 </td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.elderlyShortStay === "yes" && "あり" + (selectedContent.elderlyShortStayDetail ? "、" + selectedContent.elderlyShortStayDetail : "")}</td>
                                 </tr>
                             }
                             {
                                 selectedContent.elderlyDayService &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">デイサービス等、利用している施設 </td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.elderlyDayService === "yes" && "あり" + (selectedContent.elderlyDayServiceDetail ? "、" + selectedContent.elderlyDayServiceDetail : "")}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">デイサービス等、利用している施設 </td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.elderlyDayService === "yes" && "あり" + (selectedContent.elderlyDayServiceDetail ? "、" + selectedContent.elderlyDayServiceDetail : "")}</td>
                                 </tr>
                             }
                             {
                                 selectedContent.foreignSchool &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">日本で通っていた学校 </td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.foreignSchool}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">日本で通っていた学校 </td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.foreignSchool}</td>
                                 </tr>
                             }
                             {
                                 selectedContent.foreignGatherings &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center">同郷の方々が集まるような集会 </td>
-                                    <td className="border border-gray-200 p-2" colSpan="3">{selectedContent.foreignGatherings}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">同郷の方々が集まるような集会 </td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.foreignGatherings}</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
+                    {symptomCondition(selectedContent) &&
+                        <table className="min-w-full border-collapse border border-gray-200">
+                            <thead>
+                                <tr>
+                                    <th colSpan="4" className="border border-green-500 p-2 bg-green-500 text-white">接触者</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="border border-gray-200">
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">同居されている方</td>
+                                    <td colSpan="3" className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.householdContacts && selectedContent.householdContacts.join("\n")}</td>
+                                </tr>
+                                <tr className="border border-gray-200">
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">職場・通学先等での日常的な接触相手</td>
+                                    <td colSpan="3" className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.workSchoolContacts && selectedContent.workSchoolContacts.join("\n")}</td>
+                                </tr>
+                                <tr className="border border-gray-200">
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">その他の活動における日常的な接触相手</td>
+                                    <td colSpan="3" className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.otherRegularContacts && selectedContent.otherRegularContacts.join("\n")}</td>
+                                </tr>
+                                <tr className="border border-gray-200">
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">その他、気になることやご質問</td>
+                                    <td colSpan="3" className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.GeneralComments}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    }
                     {selectedUser.finalMessage &&
                         <div className="p-4 mt-4 border border-green-500 rounded bg-green-50">
                             <strong>調査結果:</strong>
-                            <div className="mt-2 whitespace-pre-line">{selectedUser.finalMessage}</div>
+                            <div className="mt-2 whitespace-pre-line">
+                                {selectedUser.finalMessage}
+                            </div>
                         </div>
                     }
                 </div>

@@ -74,3 +74,27 @@ export const exportPdf = async (selectedUser = {}) => {
     pdf.addImage(imgData, "PNG", 10, position, pdfWidth, pdfHeight);
     pdf.save(`${selectedUser.name ? selectedUser.name : "user"}.pdf`);
 };
+
+export const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+    }
+    return age;
+};
+
+export const formatJapaneseDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    return `${y}年${m}月${d}日`;
+};
+
+export const addString = (str, suffix) => {
+    if (str) str += "\n";
+    return str + suffix;
+}
