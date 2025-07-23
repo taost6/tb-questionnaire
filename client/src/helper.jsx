@@ -98,3 +98,8 @@ export const addString = (str, suffix) => {
     if (str) str += "\n";
     return str + suffix;
 }
+
+export const getString = (content) => {
+    if (!content) return "";
+    return content;
+}

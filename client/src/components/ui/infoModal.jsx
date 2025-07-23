@@ -1,6 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, IconButton, DialogActions, Button } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { exportExcel, exportJson, exportPdf, addString, calculateAge, formatJapaneseDate } from "@/helper";
+import { exportExcel, exportJson, exportPdf, addString, getString, calculateAge, formatJapaneseDate } from "@/helper";
 import patientReasons, { patientReasonsHospital } from "@/consts/patientReasons";
 import { symptomCondition } from "@/consts/symptomCondition";
 
@@ -124,13 +124,13 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
             const relationFound = relationOptions.find(opt => opt.value === content.contactRelation);
             if (relationFound) {
                 result = addString(result, `患者との関係: ${relationFound.label}`);
-                if (["living", "work"].includes(content.contactRelation) && content.contactPatientName) {
+                if (["living", "work"].includes(content.contactRelation)) {
                     result = addString(result, `患者の名前: ${content.contactPatientName}`);
                 }
-                if (["work", "unknownRelation"].includes(content.contactRelation) && content.contactDuration) {
+                if (["work", "unknownRelation"].includes(content.contactRelation)) {
                     result = addString(result, `接触期間・状況: ${content.contactDuration}`)
                 }
-                if (content.contactRelation === "otherRelation" && content.contactRelationOther) {
+                if (content.contactRelation === "otherRelation") {
                     result = addString(result, `その他: ${content.contactRelationOther}`)
                 }
             }
@@ -171,25 +171,26 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
             const found = sinceOptions.find(opt => opt.value === content.symptomSince);
             if (found) {
                 result = addString(result, `呼吸器系の症状（せき・たん など）: ${found.label}`);
-                if (content.symptomSince === "since-mt1m" && content.symptomSinceDetailed) {
-                    result = addString(result, `${content.symptomSinceDetailed}`);
+                if (content.symptomSince === "since-mt1m") {
+                    result += `、症状が始まった時期: ${getString(content.symptomSinceDetailed)}`;
                 }
+            }
+            else {
+                result = addString(result, "呼吸器系の症状（せき・たん など）: ");
             }
         }
 
-        if (content.healthStatus === "underTreat" && content.nonPatientTreated) {
+        if (content.healthStatus === "underTreat") {
             const options = [
                 { value: "yes", label: "はい" },
                 { value: "no", label: "いいえ" },
                 { value: "unknown", label: "分からない" },
             ];
             const found = options.find(opt => opt.value === content.nonPatientTreated);
-            if (found) {
-                result = addString(result, `せき・たんに関する検査や治療の有無: ${found.label}`);
-            }
+            result = addString(result, `せき・たんに関する検査や治療の有無: ${found ? found.label : ""}`);
         }
 
-        if (content.healthStatus === "underTreat" && content.respiratoryHistory) {
+        if (content.healthStatus === "underTreat") {
             const historyOptions = [
                 { value: "tb", label: "結核" },
                 { value: "asthma", label: "喘息" },
@@ -200,27 +201,27 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                 { value: "other", label: "その他", inputs: ["otherRespiratory"] },
             ];
             const historyFound = historyOptions.find(opt => opt.value === content.respiratoryHistory);
+            result = addString(result, `過去の呼吸器系の病歴: ${historyFound ? historyFound.label : ""}`);
             if (historyFound) {
-                result = addString(result, `過去の呼吸器系の病歴: ${historyFound.label}`);
                 if (content.respiratoryHistory === "other" && content.otherRespiratory) {
                     result = addString(result, `${content.otherRespiratory}`);
                 }
             }
         }
 
-        if (["underTreat", "underHospital"].includes(content.healthStatus) && content.otherSymptom) {
+        if (["underTreat", "underHospital"].includes(content.healthStatus)) {
             result = addString(result, `その他の症状: ${content.otherSymptom}`);
         }
 
-        if (content.healthStatus === "underHospital" && content.regularVisits) {
+        if (content.healthStatus === "underHospital") {
             result = addString(result, `定期通院している医療機関の名称: ${content.regularVisits}`);
         }
 
-        if (content.healthStatus === "underHospital" && content.diseaseName) {
+        if (content.healthStatus === "underHospital") {
             result = addString(result, `通院中の病名: ${content.diseaseName}`);
         }
 
-        if (content.healthStatus === "underHospital" && content.oralMedication) {
+        if (content.healthStatus === "underHospital") {
             result = addString(result, `内服薬: ${content.oralMedication}`);
         }
 
@@ -228,12 +229,10 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
     }
 
     const getPastTbDetail = (content) => {
+        if (content.pastTb !== "yes") return "";
         let res = "";
-        if (content.pastTbEpisode) res += content.pastTbEpisode;
-        if (content.pastTbTreatment) {
-            if (res !== "") res += "、";
-            res += content.pastTbTreatment;
-        }
+        res = addString(res, `時期: ${content.pastTbEpisode ? content.pastTbEpisode : ""}`);
+        res = addString(res, `治療内容: ${content.pastTbTreatment ? content.pastTbTreatment : ""}`);
         return res;
     }
 
@@ -435,39 +434,39 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                                 <td className="border border-gray-200 p-2 whitespace-pre-line">{getHealthStatusDetail(selectedContent)}</td>
                             </tr>
                             {
-                                patientReasonsHospital.includes(selectedContent.requestReason) && selectedContent.medicalInstitutions &&
+                                patientReasonsHospital.includes(selectedContent.requestReason) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">今回結核の診断をした医療機関</td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.medicalInstitutions}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getString(selectedContent.medicalInstitutions)}</td>
                                 </tr>
                             }
                             {
-                                patientReasons.includes(selectedContent.requestReason) && selectedContent.hospitalizations &&
+                                patientReasons.includes(selectedContent.requestReason) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">この2年間で入院した医療機関</td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.hospitalizations}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getString(selectedContent.hospitalizations)}</td>
                                 </tr>
                             }
                             {
-                                patientReasons.includes(selectedContent.requestReason) && selectedContent.pastTb &&
+                                patientReasons.includes(selectedContent.requestReason) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">結核既往歴</td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.pastTb === "yes" ? "あり" : selectedContent.pastTb === "no" ? "なし" : "分からない"}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.pastTb === "yes" ? "あり" : selectedContent.pastTb === "no" ? "なし" : selectedContent.pastTb === "unknown" ? "分からない" : ""}</td>
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
                                     <td className="border border-gray-200 p-2 whitespace-pre-line">{getPastTbDetail(selectedContent)}</td>
                                 </tr>
                             }
                             {
-                                patientReasons.includes(selectedContent.requestReason) && selectedContent.contactWithTb &&
+                                patientReasons.includes(selectedContent.requestReason) &&
                                 <tr className="border border-gray-200">
-                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">症状のある結核患者と接触したことがありますか？</td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.contactWithTb === "yes" ? "あり" : selectedContent.contactWithTb === "no" ? "なし" : "分からない"}</td>
+                                    <td className="border border-gray-200 p-2 text-center whitespace-pre-line">結核患者との接触歴</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.contactWithTb === "yes" ? "あり" : selectedContent.contactWithTb === "no" ? "なし" : selectedContent.contactWithTb === "unknown" ? "分からない" : ""}</td>
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">詳細</td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.contactWithTbDetail}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{getString(selectedContent.contactWithTbDetail)}</td>
                                 </tr>
                             }
                             {
-                                !patientReasons.includes(selectedContent.requestReason) && selectedContent.regularCheckup &&
+                                !patientReasons.includes(selectedContent.requestReason) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">健康診断受診状況</td>
                                     <td className="border border-gray-200 p-2 whitespace-pre-line">{getCheckupLabel(selectedContent)}</td>
@@ -476,12 +475,12 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                                 </tr>
                             }
                             {
-                                !patientReasons.includes(selectedContent.requestReason) && selectedContent.tbMedication &&
+                                !patientReasons.includes(selectedContent.requestReason) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">結核治療薬内服</td>
                                     <td className="border border-gray-200 p-2 whitespace-pre-line">{getTbMedic(selectedContent)}</td>
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">理由</td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.tbMedicationReason}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line">{getString(selectedContent.tbMedicationReason)}</td>
                                 </tr>
                             }
                             <tr className="border border-gray-200">
@@ -496,13 +495,13 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                             </tr>
                             <tr className="border border-gray-200">
                                 <td className="border border-gray-200 p-2 text-center whitespace-pre-line">身⾧</td>
-                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.height}</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getString(selectedContent.height)}</td>
                                 <td className="border border-gray-200 p-2 text-center whitespace-pre-line">体重</td>
-                                <td className="border border-gray-200 p-2 whitespace-pre-line">{selectedContent.weight}</td>
+                                <td className="border border-gray-200 p-2 whitespace-pre-line">{getString(selectedContent.weight)}</td>
                             </tr>
                         </tbody>
                     </table>
-                    <table className="min-w-full border-collapse mb-4 border border-gray-200">
+                    <table className="min-w-full border-collapse border border-gray-200">
                         <thead>
                             <tr>
                                 <th colSpan="4" className="border border-green-500 p-2 bg-green-500 text-white">ライフスタイル</th>
@@ -558,51 +557,51 @@ const InfoModal = ({ selectedUser, handleCloseModal }) => {
                                 <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getFacilities(selectedContent)}</td>
                             </tr>
                             {
-                                selectedContent.adultOtherPlaces &&
+                                Number(selectedContent.age) >= 18 && Number(selectedContent.age) <= 75 && symptomCondition(selectedContent) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">上記以外に月１回以上行くような場所 </td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.adultOtherPlaces}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getString(selectedContent.adultOtherPlaces)}</td>
                                 </tr>
                             }
                             {
-                                selectedContent.adultLiveEvents &&
+                                Number(selectedContent.age) >= 18 && Number(selectedContent.age) <= 75 && symptomCondition(selectedContent) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">大勢の人が集まるような機会 </td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.adultLiveEvents}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getString(selectedContent.adultLiveEvents)}</td>
                                 </tr>
                             }
                             {
-                                selectedContent.elderlyShortStay &&
+                                Number(selectedContent.age) >= 70 && symptomCondition(selectedContent) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">ショートステイ等、入所を伴う施設 </td>
                                     <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.elderlyShortStay === "yes" && "あり" + (selectedContent.elderlyShortStayDetail ? "、" + selectedContent.elderlyShortStayDetail : "")}</td>
                                 </tr>
                             }
                             {
-                                selectedContent.elderlyDayService &&
+                                Number(selectedContent.age) >= 70 && symptomCondition(selectedContent) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">デイサービス等、利用している施設 </td>
                                     <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.elderlyDayService === "yes" && "あり" + (selectedContent.elderlyDayServiceDetail ? "、" + selectedContent.elderlyDayServiceDetail : "")}</td>
                                 </tr>
                             }
                             {
-                                selectedContent.foreignSchool &&
+                                ["foreigner"].includes(selectedContent.nationality) && symptomCondition(selectedContent) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">日本で通っていた学校 </td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.foreignSchool}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getString(selectedContent.foreignSchool)}</td>
                                 </tr>
                             }
                             {
-                                selectedContent.foreignGatherings &&
+                                ["foreigner"].includes(selectedContent.nationality) && symptomCondition(selectedContent) &&
                                 <tr className="border border-gray-200">
                                     <td className="border border-gray-200 p-2 text-center whitespace-pre-line">同郷の方々が集まるような集会 </td>
-                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{selectedContent.foreignGatherings}</td>
+                                    <td className="border border-gray-200 p-2 whitespace-pre-line" colSpan="3">{getString(selectedContent.foreignGatherings)}</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                     {symptomCondition(selectedContent) &&
-                        <table className="min-w-full border-collapse border border-gray-200">
+                        <table className="min-w-full border-collapse mt-4 border border-gray-200">
                             <thead>
                                 <tr>
                                     <th colSpan="4" className="border border-green-500 p-2 bg-green-500 text-white">接触者</th>
