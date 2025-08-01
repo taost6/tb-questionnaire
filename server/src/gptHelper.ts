@@ -41,9 +41,9 @@ Please strictly follow the instructions below:
 ### How to Ask Questions:
 1. **Ask only one question at a time. Do not ask multiple questions in one message.**
 2. **If the question can be answered with fixed options, provide example answers as buttons.**
-    - Example: \`{{ Yes }}\`, \`{{ No }}\`, \`{{ Not sure }}\`
-    - Example: \`{{ Family }}\`, \`{{ Friend }}\`, \`{{ Coworker }} \`, etc.
-    - Example: \`{{ School }}\`, \`{{ Shop }}\`, \`{{ Restaurant }} \`, etc.
+    - Example: \`{{ Yes }}\` \`{{ No }}\` \`{{ Not sure }}\`
+    - Example: \`{{ Family }}\` \`{{ Friend }}\` \`{{ Coworker }} \` etc.
+    - Example: \`{{ School }}\` \`{{ Shop }}\` \`{{ Restaurant }} \` etc.
 3. If the user needs to make only one choice, such as yes or no, output {{ Single }}.
     - This will allow the user to select only one option.
     - If the user can select multiple options, do not use {{ Single }}.

@@ -5,18 +5,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "./button";
 import Select from "@/components/ui/select";
+import { getLang, getLangLabel, getLangOptions, getLangPlaceholder, getLangValidationErrorMessage } from "../../helper";
+import LangOptions from "@/consts/langOptions";
 
 const POST_CODE_API_URL = "https://apis.postcode-jp.com/api/v6/postcodes";
 const POSTAL_CODE_API_KEY = "FqVYXziF2zIfLYrghe1fP3UCpyeFY9VBDlmtcX9";
 
-const drawChildren = (field, data, setData, inputError = {}) => {
+const drawChildren = (field, data, setData, inputError = {}, lang = "jp") => {
   return field.children?.map((child) => {
     // child.conditional があればそれを優先、なければ conditionalValue との比較
     const ok = child.conditional ? child.conditional(data) : data[field.id] === child.conditionalValue;
     if (!ok) return null;
     return (
       <div key={child.id} className="ml-4">
-        <Field field={child} data={data} setData={setData} error={inputError[child.id] ? true : false} />
+        <Field field={child} data={data} setData={setData} error={inputError[child.id] ? true : false} lang={lang} />
       </div>
     );
   });
@@ -35,6 +37,8 @@ function Field({
     noRequire: {},
     mode: "normal",
   },
+  setLang = () => { },
+  lang = "jp"
 }) {
   if (field.conditional && !field.conditional(data)) return null;
   // const set = v => setData(d => ({ ...d, [field.id]: v }));
@@ -84,24 +88,24 @@ function Field({
       return (
         <div className="mb-4">
           <Label className={`${labelCls} ${(error || validationError[field.id]) && "text-red-500"}`} htmlFor={field.id}>
-            {field.label}
+            {getLangLabel(lang, field.id) || field.label}
           </Label>
           <div className="pl-4">
             <Input
               id={field.id}
               value={data[field.id] || ""}
-              placeholder={field.placeholder || ""}
+              placeholder={field.placeholder ? getLangPlaceholder(lang, field.id) || field.placeholder : ""}
               onChange={(e) => setData((d) => ({ ...d, [field.id]: e.target.value }))}
               validationError={error}
             />
           </div>
           {validationError[field.id] && (
             <Label className={`${labelCls} ml-4 mt-1 text-red-500`} htmlFor={field.id}>
-              {field.validationErrorMessage ? field.validationErrorMessage : "正しい形式で入力してください。"}
+              {field.validationErrorMessage ? getLangValidationErrorMessage(lang, field.id) || getLang(lang, "defaultValidationErrorMessage") : "正しい形式で入力してください。"}
             </Label>
           )}
           {/* ── ここから子フィールド描画 ── */}
-          {drawChildren(field, data, setData, inputError)}
+          {drawChildren(field, data, setData, inputError, lang)}
           {/* ── ここまで ── */}
         </div>
       );
@@ -110,7 +114,7 @@ function Field({
       return (
         <div className="mb-4">
           <Label className={`${labelCls} ${error && "text-red-500"}`} htmlFor={field.id}>
-            {field.label}
+            {getLangLabel(lang, field.id) || field.label}
           </Label>
           <div className="pl-4">
             <Input
@@ -128,7 +132,7 @@ function Field({
       return (
         <div className="">
           <Label className={labelCls} htmlFor={field.id}>
-            {field.label}
+            {getLangLabel(lang, field.id) || field.label}
           </Label>
           <div className="pl-4 mb-4">
             <Select
@@ -139,17 +143,18 @@ function Field({
             />
           </div>
           {/* ── ここから子フィールド描画 ── */}
-          {drawChildren(field, data, setData, inputError)}
+          {drawChildren(field, data, setData, inputError, lang)}
           {/* ── ここまで ── */}
         </div>
       );
 
     case "radio":
+      const radioOptions = getLangOptions(lang, field.id);
       return (
         <div className="mb-4">
           {/* 設問ラベル */}
           <Label htmlFor={field.id} className={`${labelCls} ${error && "text-red-500"}`}>
-            {field.label}
+            {getLangLabel(lang, field.id) || field.label}
           </Label>
 
           {/* ラジオ選択肢 */}
@@ -166,9 +171,17 @@ function Field({
                       name={field.id}
                       value={opt.value}
                       checked={selected}
-                      onChange={(e) => setData((d) => ({ ...d, [field.id]: e.target.value }))}
+                      onChange={(e) => {
+                        if (field.id === "language") {
+                          LangOptions.filter((l) => l.label === e.target.value).forEach((l) => {
+                            setLang(l.key);
+                          });
+                        }
+                        setData((d) => ({ ...d, [field.id]: e.target.value }))
+                      }
+                      }
                     />
-                    <span>{opt.label}</span>
+                    <span>{radioOptions && radioOptions[opt.value] ? radioOptions[opt.value] : opt.label}</span>
                   </label>
 
                   {/* ここから子フィールド展開（選択中のみ） */}
@@ -180,7 +193,7 @@ function Field({
                       if (!ok) return null;
                       return (
                         <div key={child.id} className="ml-8 mt-2">
-                          <Field field={child} data={data} setData={setData} inputError={inputError} error={inputError[child.id] ? true : false} />
+                          <Field field={child} data={data} setData={setData} inputError={inputError} error={inputError[child.id] ? true : false} lang={lang} />
                         </div>
                       );
                     })}
@@ -198,19 +211,20 @@ function Field({
           <div className="ml-4 mb-4 flex items-center space-x-2">
             <Checkbox id={field.id} checked={!!data[field.id]} onCheckedChange={(v) => setData((d) => ({ ...d, [field.id]: v }))} />
             <Label htmlFor={field.id} className="font-semibold">
-              {field.label}
+              {getLangLabel(lang, field.id) || field.label}
             </Label>
           </div>
           {/* ── ここから子フィールド描画 ── */}
-          {drawChildren(field, data, setData, inputError)}
+          {drawChildren(field, data, setData, inputError, lang)}
           {/* ── ここまで ── */}
         </>
       );
 
     case "checkbox":
+      const checkboxOptions = getLangOptions(lang, field.id);
       return (
         <div className="mb-4">
-          <Label className={`${labelCls} ${error && "text-red-500"}`}>{field.label}</Label>
+          <Label className={`${labelCls} ${error && "text-red-500"}`}>{getLangLabel(lang, field.id) || field.label}</Label>
           <div className="ml-4">
             {field.options.map((opt) => {
               const checked = (data[field.id] || []).includes(opt.value);
@@ -234,7 +248,7 @@ function Field({
                       className="mr-2"
                     />
                     <label htmlFor={inputId} className="select-none">
-                      {opt.label}
+                      {checkboxOptions && checkboxOptions[opt.value] ? checkboxOptions[opt.value] : opt.label}
                     </label>
                   </div>
 
@@ -246,7 +260,7 @@ function Field({
 
                       return (
                         <div key={child.id} className="ml-8">
-                          <Field field={child} data={data} setData={setData} inputError={inputError} error={inputError[child.id] ? true : false} />
+                          <Field field={child} data={data} setData={setData} inputError={inputError} error={inputError[child.id] ? true : false} lang={lang} />
                         </div>
                       );
                     })}
@@ -261,7 +275,7 @@ function Field({
       return (
         <div className="mb-4">
           <Label className={labelCls} htmlFor={field.id}>
-            {field.label}
+            {getLangLabel(lang, field.id) || field.label}
           </Label>
           <Textarea
             id={field.id}
@@ -275,7 +289,7 @@ function Field({
     case "note":
       return (
         <div className="mb-2 ml-4">
-          <p className="text-sm text-gray-600">{field.label}</p>
+          <p className="text-sm text-gray-600">{getLangLabel(lang, field.id) || field.label}</p>
         </div>
       );
 
@@ -285,13 +299,13 @@ function Field({
       const setList = (newList) => setData((d) => ({ ...d, [field.id]: newList }));
       return (
         <div className="mb-4">
-          <Label className={labelCls}>{field.label}</Label>
+          <Label className={labelCls}>{getLangLabel(lang, field.id) || field.label}</Label>
           <div className="ml-4 space-y-2">
             {list.map((item, idx) => (
               <div key={idx} className="flex items-center space-x-2">
                 <Input
                   value={item}
-                  placeholder={field.placeholder || ""}
+                  placeholder={getLangPlaceholder(lang, field.id) || field.placeholder || ""}
                   onChange={(e) => {
                     const arr = [...list];
                     arr[idx] = e.target.value;
@@ -308,7 +322,7 @@ function Field({
                       setList(arr);
                     }}
                   >
-                    削除
+                    {getLang(lang, "remove") || "削除"}
                   </Button>
                 )}
               </div>
@@ -316,7 +330,7 @@ function Field({
             {/* 追加ボタン */}
             <div className="w-full flex justify-end">
               <Button variant="outline" size="sm" onClick={() => setList([...list, ""])}>
-                追加
+                {getLang(lang, "add") || "追加"}
               </Button>
             </div>
           </div>
@@ -327,19 +341,19 @@ function Field({
       return (
         <div className="mb-4">
           <Label className={`${labelCls} ${error && "text-red-500"}`} htmlFor={field.id}>
-            {field.label}
+            {getLangLabel(lang, field.id) || field.label}
           </Label>
           <div className="pl-4">
             <Input
               id={field.id}
               value={data[field.id] || ""}
-              placeholder={field.placeholder || ""}
+              placeholder={getLangPlaceholder(lang, field.id) || ""}
               validationError={error}
               onChange={handlePostcodeChange}
             />
           </div>
           {/* ── ここから子フィールド描画 ── */}
-          {drawChildren(field, data, setData, inputError)}
+          {drawChildren(field, data, setData, inputError, lang)}
           {/* ── ここまで ── */}
         </div>
       );

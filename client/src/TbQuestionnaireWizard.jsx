@@ -7,6 +7,7 @@ import sections from "./consts/sections";
 import patientReasons from "./consts/patientReasons";
 import sendRequest from "./apis";
 import { symptomCondition } from "./consts/symptomCondition";
+import { getLang, getLangLabel, getLangNote, getLangOptions, getLangPlaceholder, getLangTitle, getLangValidationErrorMessage } from "./helper";
 
 export default function TbQuestionnaireWizard() {
   const [showOptions, setShowOptions] = useState({
@@ -66,10 +67,9 @@ export default function TbQuestionnaireWizard() {
   const [inputError, setInputError] = useState({});
   const [validationError, setValidationError] = useState({});
   const [isSubmiting, setIsSubmitting] = useState(false);
+  const [lang, setLang] = useState("jp");
 
-  // Sync step with browser history
   useEffect(() => {
-    // On mount, set step from history state if available
     const initialStep = window.history.state && typeof window.history.state.step === "number"
       ? window.history.state.step
       : 0;
@@ -83,7 +83,6 @@ export default function TbQuestionnaireWizard() {
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  // Push step to history when changed by buttons
   const goToStep = (newStep) => {
     setStep(newStep);
     window.history.pushState({ step: newStep }, "", "");
@@ -94,7 +93,6 @@ export default function TbQuestionnaireWizard() {
     let newInputError = {};
     let newValidationError = {};
     let hasInputError = false;
-    console.log("showOptions", showOptions);
     const validate = (fieldList, parentKey) => {
       fieldList.forEach((f) => {
         if (showOptions.noCheck) return;
@@ -124,7 +122,6 @@ export default function TbQuestionnaireWizard() {
           }
         }
 
-        // Email validation
         if (f.id === "email" && value && value !== "") {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
@@ -155,12 +152,11 @@ export default function TbQuestionnaireWizard() {
     [isValid, hasInputError, vError] = validateFields(sections[step].fields);
     if (!isValid) {
       if (hasInputError) {
-        alert("赤字の設問は必ず入力して下さい");
-      }
-      if (step === 0 && vError.email) {
-        alert("メールアドレスの形式が不正です");
+        alert(getLang(lang, "inputError") || "赤字の設問は必ず入力して下さい");
+      } else if (step === 0 && vError.email) {
+        alert(getLang(lang, "emailError") || "メールアドレスの形式が不正です");
       } else if (step === 1 && vError.phone) {
-        alert("電話番号の形式が不正です");
+        alert(getLang(lang, "phoneError") || "電話番号の形式が不正です");
       } else {
       }
       return;
@@ -185,6 +181,7 @@ export default function TbQuestionnaireWizard() {
       return;
     }
     localStorage.setItem("tbq-sessionId", JSON.stringify(res.insertId));
+    localStorage.setItem("tbq-lang", lang);
     location.href = "#/dialogue";
   };
 
@@ -200,14 +197,9 @@ export default function TbQuestionnaireWizard() {
       <motion.div key={step} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
         <Card className="shadow">
           <CardContent className="p-6">
-            {cur.id === "health" ? (
-              <h2 className="text-xl font-semibold mb-4">
-                {cur.title} ({showOptions.mode === "patients" || patientReasons.includes(formData.requestReason) ? "患者" : "接触者"})
-              </h2>
-            ) : (
-              <h2 className="text-xl font-semibold mb-4">{cur.title}</h2>
-            )}
-
+            <h2 className="text-xl font-semibold mb-4">{getLangTitle(lang, cur.id)}{
+              cur.id === "health" && (showOptions.mode === "patients" || patientReasons.includes(formData.requestReason) ? ` (${getLang(lang, "patientMode")})` : ` (${getLang(lang, "contactMode")})`)
+            }</h2>
             {cur.fields.map(
               (f) =>
                 !showOptions.hide[f.id] && (
@@ -220,6 +212,8 @@ export default function TbQuestionnaireWizard() {
                     validationError={validationError}
                     error={inputError[f.id] ? true : false}
                     showOptions={showOptions}
+                    setLang={setLang}
+                    lang={lang}
                   />
                 )
             )}
@@ -228,9 +222,9 @@ export default function TbQuestionnaireWizard() {
       </motion.div>
       <div className="flex justify-between mt-6">
         <Button variant="outline" onClick={handleBack} disabled={step === 0}>
-          戻る
+          {getLang(lang, "prevStep")}
         </Button>
-        {step === sections.length - 1 || (step === sections.length - 2 && !symptomCondition(formData)) ? <Button onClick={handleSubmit}>提出</Button> : <Button onClick={handleNext}>次へ</Button>}
+        {step === sections.length - 1 || (step === sections.length - 2 && !symptomCondition(formData)) ? <Button onClick={handleSubmit}>{getLang(lang, "submit")}</Button> : <Button onClick={handleNext}>{getLang(lang, "nextStep")}</Button>}
       </div>
       <pre
         className="mt-6 text-xs bg-gray-100 p-2 rounded leading-tight overflow-x-auto"

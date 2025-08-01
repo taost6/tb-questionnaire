@@ -9,6 +9,7 @@ import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import avartar from "./assets/img/avatar.jpg";
 import bgImage from "./assets/img/banner-background.webp";
 import Header from "./components/ui/header";
+import { getLang } from "./helper";
 
 const TbDialogueWizard = () => {
     const [msgs, setMsgs] = useState([]);
@@ -18,6 +19,7 @@ const TbDialogueWizard = () => {
     const [sessionId, setSessionId] = useState(0);
     const [options, setOptions] = useState([]);
     const [singleChoice, setSingleChoice] = useState(false);
+    const [lang, setLang] = useState("jp");
 
     useEffect(() => {
         const id = localStorage.getItem("tbq-sessionId");
@@ -26,6 +28,8 @@ const TbDialogueWizard = () => {
             return;
         }
         setSessionId(id);
+        const language = localStorage.getItem("tbq-lang");
+        if (language) setLang(language);
         const fetchData = async () => {
             if (isLoading) return;
             setIsLoading(true);
@@ -59,7 +63,7 @@ const TbDialogueWizard = () => {
 
     const getFormattedDate = () => {
         const date = new Date();
-        const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+        const weekdays = getLang(lang, "weekdays") || ["日", "月", "火", "水", "木", "金", "土"];
         const month = date.getMonth() + 1;
         const day = date.getDate();
         const weekday = weekdays[date.getDay()];
@@ -145,7 +149,7 @@ const TbDialogueWizard = () => {
             )}
             <div
                 className={`max-w-[70%] ${dir === "left" ? "bg-gray-200" : "bg-green-200"
-                    } rounded-tl-xl rounded-tr-xl ${dir === "left" ? "rounded-bl-sm rounded-br-xl" : "rounded-bl-xl rounded-br-sm"} shadow-md px-4 py-2 break-all whitespace-pre-line`}
+                    } rounded-tl-xl rounded-tr-xl ${dir === "left" ? "rounded-bl-sm rounded-br-xl" : "rounded-bl-xl rounded-br-sm"} shadow-md px-4 py-2 whitespace-pre-line`}
                 dangerouslySetInnerHTML={{
                     __html: res,
                 }}
@@ -218,7 +222,7 @@ const TbDialogueWizard = () => {
             </motion.div>
 
             <div className="mt-4 text-right">
-                <Button className="bg-blue-500 text-white">終了</Button>
+                <Button className="bg-blue-500 text-white">{getLang(lang, "exit")}</Button>
             </div>
         </div>
         // </div>

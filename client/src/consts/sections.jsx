@@ -2,6 +2,7 @@
 import ageOptions from "./ageOptions";
 import patientReasons, { patientReasonsHospital } from "./patientReasons";
 import { symptomCondition } from "./symptomCondition";
+import langOptions from "./langOptions";
 
 const sections = [
   {
@@ -665,7 +666,7 @@ const sections = [
         options: [
           { value: "yes", label: "はい" },
           { value: "no", label: "いいえ" },
-          { value: "unkown", label: "分からない" },
+          { value: "unknown", label: "分からない" },
         ],
         children: [
           {

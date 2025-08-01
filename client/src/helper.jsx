@@ -1,6 +1,8 @@
 import sections from "./consts/sections";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import LangOptions from "./consts/langOptions";
+import Lang from "./consts/lang";
 
 export const getFieldLabel = (fieldName) => {
     for (const section of sections) {
@@ -103,3 +105,51 @@ export const getString = (content) => {
     if (!content) return "";
     return content;
 }
+
+export const getLang = (lang, key) => {
+    if (Lang[key] && Lang[key][lang]) return Lang[key][lang];
+    return false;
+}
+
+export const getLangLabel = (lang, key) => {
+    if (Lang[key] && Lang[key].label && Lang[key].label[lang]) {
+        return Lang[key].label[lang];
+    }
+    return false;
+}
+
+export const getLangTitle = (lang, key) => {
+    if (Lang[key] && Lang[key].title && Lang[key].title[lang]) {
+        return Lang[key].title[lang];
+    }
+    return false;
+}
+
+export const getLangValidationErrorMessage = (lang, key) => {
+    if (Lang[key] && Lang[key].validationErrorMessage && Lang[key].validationErrorMessage[lang]) {
+        return Lang[key].validationErrorMessage[lang];
+    }
+    return false;
+}
+
+export const getLangPlaceholder = (lang, key) => {
+    if (Lang[key] && Lang[key].placeholder && Lang[key].placeholder[lang]) {
+        return Lang[key].placeholder[lang];
+    }
+    return false;
+}
+
+export const getLangOptions = (lang, key) => {
+    if (Lang[key] && Lang[key].options && Lang[key].options[lang]) {
+        return Lang[key].options[lang];
+    }
+    return false;
+}
+
+export const getLangNote = (lang, key) => {
+    if (Lang[key] && Lang[key].note && Lang[key].note[lang]) {
+        return Lang[key].note[lang];
+    }
+    return false;
+}
+
