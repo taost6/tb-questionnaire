@@ -1,7 +1,9 @@
 name: Deploy to Pages
+
 on:
   push:
     branches: [main]          # main へ push されたら実行
+
 permissions:
   contents: read
   pages: write
@@ -28,9 +30,13 @@ jobs:
           env | sort
 
       - run: npm install
-      - run: npx vite build
+
+      - name: Build with GITHUB_PAGES env
+        run: GITHUB_PAGES=true npx vite build
+
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
