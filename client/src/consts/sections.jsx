@@ -34,8 +34,8 @@ const sections = [
     id: "basic",
     title: "II. 基礎情報",
     fields: [
-      { id: "name", label: "氏名", type: "text", required: true },
-      { id: "furiganaName", label: "フリガナ", type: "text" },
+      { id: "name", label: "氏名", type: "text", required: true, placeholder: "山田太郎" },
+      { id: "furiganaName", label: "フリガナ", type: "text", placeholder: "ヤマダタロウ", conditional: (d) => d.language === "日本語" },
       {
         id: "age",
         label: "年齢",

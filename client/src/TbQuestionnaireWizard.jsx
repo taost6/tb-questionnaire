@@ -8,6 +8,7 @@ import patientReasons from "./consts/patientReasons";
 import sendRequest from "./apis";
 import { symptomCondition } from "./consts/symptomCondition";
 import { getLang, getLangLabel, getLangNote, getLangOptions, getLangPlaceholder, getLangTitle, getLangValidationErrorMessage } from "./helper";
+import Header from "./components/ui/header";
 
 export default function TbQuestionnaireWizard() {
   const [showOptions, setShowOptions] = useState({
@@ -190,10 +191,7 @@ export default function TbQuestionnaireWizard() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">結核問診票 / Tuberculosis Questionnaire</h1>
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${progress}%` }} />
-      </div>
+      <Header lang={lang} percent={progress} />
       <motion.div key={step} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
         <Card className="shadow">
           <CardContent className="p-6">

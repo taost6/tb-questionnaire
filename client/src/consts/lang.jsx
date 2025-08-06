@@ -73,6 +73,17 @@ const Lang = {
             km: "ឈ្មោះ",
             bn: "নাম",
             pt: "Nome"
+        },
+        placeholder: {
+            jp: "",
+            en: "in Roman letters, as shown in passport or official ID",
+            tl: "Sa mga titik na Romano, tulad ng nasa pasaporte o opisyal na ID",
+            vi: "Bằng chữ cái La Mã, như trong hộ chiếu hoặc giấy tờ tùy thân chính thức",
+            th: "เป็นตัวอักษรโรมันตามที่ปรากฏในหนังสือเดินทางหรือบัตรประจำตัว",
+            my: "လက်မှတ် သို့မဟုတ် တရားဝင် ID တွင် ဖော်ပြထားသည့်အတိုင်း ရိုမန်အက္ခရာဖြင့်",
+            km: "ជាអក្សររ៉ូម៉ាំង ដូចដែលបានបង្ហាញនៅក្នុងលិខិតឆ្លងដែន ឬអត្តសញ្ញាណប័ណ្ណផ្លូវការ",
+            bn: "পাসপোর্ট বা অফিসিয়াল আইডিতে প্রদর্শিত রোমান অক্ষরে",
+            pt: "Em letras romanas, conforme mostrado no passaporte ou documento oficial"
         }
     },
     furiganaName: {
@@ -220,6 +231,17 @@ const Lang = {
             km: "ថ្ងៃកំណើត",
             bn: "জন্ম তারিখ",
             pt: "Data de Nascimento"
+        },
+        placeholder: {
+            jp: "年/月/日",
+            en: "Year/Month/Day",
+            tl: "Year/Month/Day",
+            vi: "Year/Month/Day",
+            th: "Year/Month/Day",
+            my: "Year/Month/Day",
+            km: "Year/Month/Day",
+            bn: "Year/Month/Day",
+            pt: "Year/Month/Day"
         }
     },
     proxyFlag: {
@@ -3535,7 +3557,18 @@ const Lang = {
         km: "ទ្រង់ទ្រាយលេខទូរស័ព្ទមិនត្រឹមត្រូវទេ។",
         bn: "ফোন নম্বরের ফরম্যাট সঠিক নয়।",
         pt: "Formato de número de telefone inválido."
-    }
+    },
+    header: {
+        jp: "結核問診票 / Tuberculosis Questionnaire",
+        en: "結核問診票 / Tuberculosis Questionnaire",
+        tl: "結核問診票 / Talatanungan sa Tuberculosis",
+        vi: "結核問診票 / Bảng câu hỏi về bệnh lao",
+        th: "結核問診票 / แบบสอบถามวัณโรค",
+        my: "結核問診票 / တီဘီရောဂါဆိုင်ရာမေးခွန်းများ",
+        km: "結核問診票 / សំណួរពាក់ព័ន្ធជំងឺរបេង",
+        bn: "結核問診票 / যক্ষ্মা প্রশ্নাবলী",
+        pt: "結核問診票 / Questionário de Tuberculose"
+    },
 };
 
 export default Lang;

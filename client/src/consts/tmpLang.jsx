@@ -133,4 +133,28 @@ export const TmpLang = {
             }
         }
     },
+    birthDate: {
+        label: {
+            jp: "生年月日",
+            en: "Date of Birth",
+            tl: "Araw ng Kapanganakan",
+            vi: "Ngày sinh",
+            th: "วันเกิด",
+            my: "မွေးနေ့",
+            km: "ថ្ងៃកំណើត",
+            bn: "জন্ম তারিখ",
+            pt: "Data de Nascimento"
+        },
+        placeholder: {
+            jp: "年/月/日",
+            en: "YYYY/MM/DD",
+            tl: "YYYY/MM/DD",
+            vi: "YYYY/MM/DD",
+            th: "ปี/เดือน/วัน",
+            my: "YYYY/MM/DD",
+            km: "ឆ្នាំ/ខែ/ថ្ងៃ",
+            bn: "বছর/মাস/দিন",
+            pt: "AAAA/MM/DD"
+        }
+    },
 }

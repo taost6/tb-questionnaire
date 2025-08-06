@@ -120,9 +120,12 @@ function Field({
             <Input
               id={field.id}
               type="date"
-              value={data[field.id] || ""}
+              lang={lang}
+              value={data[field.id] ? new Date(data[field.id]) : null}
               validationError={error}
-              onChange={(e) => setData((d) => ({ ...d, [field.id]: e.target.value }))}
+              onChange={(date) => {
+                setData((d) => ({ ...d, [field.id]: date ? date.toISOString() : "" }))
+              }}
             />
           </div>
         </div>
