@@ -5,7 +5,10 @@ import Field from "./components/ui/field";
 import { motion } from "framer-motion";
 import sections from "./consts/sections";
 import patientReasons from "./consts/patientReasons";
-import { CloudCog } from "lucide-react";
+import sendRequest from "./apis";
+import { symptomCondition } from "./consts/symptomCondition";
+import { getLang, getLangLabel, getLangNote, getLangOptions, getLangPlaceholder, getLangTitle, getLangValidationErrorMessage } from "./helper";
+import Header from "./components/ui/header";
 
 export default function TbQuestionnaireWizard() {
   const [showOptions, setShowOptions] = useState({
@@ -64,14 +67,33 @@ export default function TbQuestionnaireWizard() {
   });
   const [inputError, setInputError] = useState({});
   const [validationError, setValidationError] = useState({});
-  const [showData, setShowData] = useState(false);
+  const [isSubmiting, setIsSubmitting] = useState(false);
+  const [lang, setLang] = useState("jp");
+
+  useEffect(() => {
+    const initialStep = window.history.state && typeof window.history.state.step === "number"
+      ? window.history.state.step
+      : 0;
+    setStep(initialStep);
+
+    const onPopState = (event) => {
+      const s = event.state && typeof event.state.step === "number" ? event.state.step : 0;
+      setStep(s);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  const goToStep = (newStep) => {
+    setStep(newStep);
+    window.history.pushState({ step: newStep }, "", "");
+  };
 
   const validateFields = (fields, parentId = "root") => {
     let isValid = true;
     let newInputError = {};
     let newValidationError = {};
     let hasInputError = false;
-    console.log("showOptions", showOptions);
     const validate = (fieldList, parentKey) => {
       fieldList.forEach((f) => {
         if (showOptions.noCheck) return;
@@ -101,7 +123,6 @@ export default function TbQuestionnaireWizard() {
           }
         }
 
-        // Email validation
         if (f.id === "email" && value && value !== "") {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
@@ -127,30 +148,42 @@ export default function TbQuestionnaireWizard() {
   };
 
   const handleNext = () => {
-    // setPage(p => p + 1);
     window.scrollTo(0, 0);
     let isValid, hasInputError, vError;
     [isValid, hasInputError, vError] = validateFields(sections[step].fields);
     if (!isValid) {
       if (hasInputError) {
-        alert("赤字の設問は必ず入力して下さい");
-      }
-      if (step === 0 && vError.email) {
-        alert("メールアドレスの形式が不正です");
+        alert(getLang(lang, "inputError") || "赤字の設問は必ず入力して下さい");
+      } else if (step === 0 && vError.email) {
+        alert(getLang(lang, "emailError") || "メールアドレスの形式が不正です");
       } else if (step === 1 && vError.phone) {
-        alert("電話番号の形式が不正です");
+        alert(getLang(lang, "phoneError") || "電話番号の形式が不正です");
       } else {
       }
       return;
     }
-    setStep((s) => Math.min(s + 1, sections.length - 1));
+    const nextStep = Math.min(step + 1, sections.length - 1);
+    goToStep(nextStep);
   };
 
-  const handleSubmit = () => {
+  const handleBack = () => {
+    // Use browser back button for sync
+    window.history.back();
+  };
+
+  const handleSubmit = async () => {
     // 送信処理
-    document.getElementById("formData").style.display = "block";
+    if (isSubmiting) return;
+    setIsSubmitting(true);
+    const res = await sendRequest({ data: formData }, "POST", "user");
+
+    if (!res) {
+      setIsSubmitting(false);
+      return;
+    }
+    localStorage.setItem("tbq-sessionId", JSON.stringify(res.insertId));
+    localStorage.setItem("tbq-lang", lang);
     location.href = "#/dialogue";
-    setShowData(true);
   };
 
   const cur = sections[step];
@@ -158,21 +191,13 @@ export default function TbQuestionnaireWizard() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">結核問診票 / Tuberculosis Questionnaire</h1>
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${progress}%` }} />
-      </div>
+      <Header lang={lang} percent={progress} />
       <motion.div key={step} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
         <Card className="shadow">
           <CardContent className="p-6">
-            {cur.id === "health" ? (
-              <h2 className="text-xl font-semibold mb-4">
-                {cur.title} ({showOptions.mode === "patients" || patientReasons.includes(formData.requestReason) ? "患者" : "接触者"})
-              </h2>
-            ) : (
-              <h2 className="text-xl font-semibold mb-4">{cur.title}</h2>
-            )}
-
+            <h2 className="text-xl font-semibold mb-4">{getLangTitle(lang, cur.id)}{
+              cur.id === "health" && (showOptions.mode === "patients" || patientReasons.includes(formData.requestReason) ? ` (${getLang(lang, "patientMode")})` : ` (${getLang(lang, "contactMode")})`)
+            }</h2>
             {cur.fields.map(
               (f) =>
                 !showOptions.hide[f.id] && (
@@ -185,6 +210,8 @@ export default function TbQuestionnaireWizard() {
                     validationError={validationError}
                     error={inputError[f.id] ? true : false}
                     showOptions={showOptions}
+                    setLang={setLang}
+                    lang={lang}
                   />
                 )
             )}
@@ -192,10 +219,10 @@ export default function TbQuestionnaireWizard() {
         </Card>
       </motion.div>
       <div className="flex justify-between mt-6">
-        <Button variant="outline" onClick={() => setStep((s) => Math.max(s - 1, 0))} disabled={step === 0}>
-          戻る
+        <Button variant="outline" onClick={handleBack} disabled={step === 0}>
+          {getLang(lang, "prevStep")}
         </Button>
-        {step < sections.length - 1 ? <Button onClick={handleNext}>次へ</Button> : <Button onClick={handleSubmit}>提出</Button>}
+        {step === sections.length - 1 || (step === sections.length - 2 && !symptomCondition(formData)) ? <Button onClick={handleSubmit}>{getLang(lang, "submit")}</Button> : <Button onClick={handleNext}>{getLang(lang, "nextStep")}</Button>}
       </div>
       <pre
         className="mt-6 text-xs bg-gray-100 p-2 rounded leading-tight overflow-x-auto"

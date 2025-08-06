@@ -6,18 +6,134 @@
 
 ---
 
+## 技術スタック
+
+- Frontend: React + Vite
+- Backend: Node.js + TypeScript + Express
+- Database: MySQL 8
+- Docker: docker-compose
+
+![Banner](./system-diagram.png)
+
+---
+
+## プロジェクトの構成
+
+```bash
+tbq/
+└── client/ # React + Vite frontend
+    └── src/
+        ├── apis/
+        ├── assets/
+        ├── components/
+        ├── consts/
+        ├── lib/
+        ├── index.css
+        ├── main.jsx
+        ├── TbDialogueWizard.jsx
+        └── TbQuestionnaireWizard.jsx
+    ├── .env/
+    ├── components.json
+    ├── Dockerfile
+    ├── jsconfig.json
+    ├── package.json
+    ├── postcss.config.js
+    ├── tailwind.config.js
+    └── vite.config.js
+└── server/ # Express + TypeScript backend
+    ├── src/
+        ├── db.ts
+        ├── helper.ts
+        └── index.ts
+    ├── .env
+    ├── Dockerfile
+    ├── package.json
+    ├── tbq-backend.sql
+    └── tsconfig.json
+├── docker-compose.yml
+├── package.json
+└── README.md
+```
+
+## バックエンドのフローチャート
+
+#### 1. 開始
+
+#### 2. ユーザー入力を受け取る（メッセージ＋セッション ID）
+
+#### 3. ユーザーメッセージをデータベースに保存
+
+#### 4. セッション ID に対応する全メッセージを取得（時系列順）
+
+#### 5. メッセージを ChatGPT API 用のプロンプト形式に整形
+
+#### 6. ChatGPT API に送信
+
+#### 7. ChatGPT API から返信を受け取る
+
+#### 8. 返信メッセージをデータベースに保存（role = assistant）
+
+#### 9. 返信メッセージをフロントエンドに返す
+
+#### 10. 終了
+
+---
+
+## はじめに
+
+### 1. このリポジトリをクローンする
+
+```bash
+git clone https://github.com/taost6/tb-questionnaire.git
+cd tb-questionnaire
+```
+
+### 2. コンテナの構築と開始
+
+```bash
+docker-compose down -v          # optional: clean existing volumes
+docker-compose up --build -d    # build and start in background
+```
+
+### Frontend
+
+| Location     | Port | Description              |
+| ------------ | ---- | ------------------------ |
+| React (Vite) | 4173 | Production web interface |
+
+### Backend
+
+| Location    | Port | Description              |
+| ----------- | ---- | ------------------------ |
+| Express API | 3000 | Node.js REST API service |
+
+### Database
+
+| Service | Port | Description        |
+| ------- | ---- | ------------------ |
+| MySQL   | 3306 | MySQL 8 persistent |
+
+#### Default MySQL credentials:
+
+```makefile
+Host: mysql
+User: root
+Password: root123
+Database: tbq_backend
+```
+
 ## サンプル URL
 
 - **患者向け問診票（住所・生年月日を非表示）**  
-  [https://taost6.github.io/tb-questionnaire/?options=patients,noaddr,nobirthd](https://taost6.github.io/tb-questionnaire/?options=patients,noaddr,nobirthd)  
+  [http://localhost:4173/#/questionnaire?options=patients,noaddr,nobirthd](http://localhost:4173/#/questionnaire?options=patients,noaddr,nobirthd)  
   → 保健所に発生届が提出された後、保健所から患者に状況報告依頼をする利用を想定しています。
 
 - **接触者向け（住所を非表示）**  
-  [https://taost6.github.io/tb-questionnaire/?options=contacts,noaddr](https://taost6.github.io/tb-questionnaire/?options=contacts,noaddr)  
+  [http://localhost:4173/#/questionnaire/?options=contacts,noaddr](http://localhost:4173/#/questionnaire?options=contacts,noaddr)  
   → 患者への接触者へと URL を配布することで、接触者の健康状態等を網羅的かつ迅速に収集することができます。
 
 - **完全モード（オプションなし）**  
-  [https://taost6.github.io/tb-questionnaire/](https://taost6.github.io/tb-questionnaire/)  
+  [http://localhost:4173/#/questionnaire](http://localhost:4173/#/questionnaire)  
   → 患者・接触者の別を問わず、柔軟に使用可能なモードです
 
 ---

@@ -1,11 +1,7 @@
 // Form schema definitions
 import ageOptions from "./ageOptions";
 import patientReasons, { patientReasonsHospital } from "./patientReasons";
-
-const symptomCondition = (d) => {
-  if (!["investigation", "contactPossible", "unknown"].includes(d.requestReason)) return true;
-  return d.cough2w === "yes";
-};
+import { symptomCondition } from "./symptomCondition";
 
 const sections = [
   {
@@ -82,9 +78,9 @@ const sections = [
         label: "代理人による入力",
         type: "check",
         children: [
-          { id: "guardian", label: "保護者・記入者氏名", type: "text", conditional: (d) => d.proxyFlag },
-          { id: "guardianRelation", label: "患者との関係", type: "text", conditional: (d) => d.proxyFlag },
-          { id: "guardianAddress", label: "連絡先", type: "text", conditional: (d) => d.proxyFlag },
+          { id: "guardian", label: "保護者・記入者氏名", type: "text", conditional: (d: any) => d.proxyFlag },
+          { id: "guardianRelation", label: "患者との関係", type: "text", conditional: (d: any) => d.proxyFlag },
+          { id: "guardianAddress", label: "連絡先", type: "text", conditional: (d: any) => d.proxyFlag },
         ],
       },
       { id: "postalCode", label: "郵便番号", type: "postcode", placeholder: "例: 123-4567" },
@@ -102,7 +98,7 @@ const sections = [
             id: "phoneNote",
             type: "note",
             label: "※連絡しやすい番号を入力してください",
-            conditional: (d) => true,
+            conditional: (d: any) => true,
           },
         ],
       },
@@ -110,7 +106,7 @@ const sections = [
         id: "connectFlag",
         label: "連絡がしやすい曜日、時間入力",
         type: "check",
-        children: [{ id: "connectDay", label: "", type: "text", placeholder: "連絡がしやすい曜日・時間", conditional: (d) => d.connectFlag }],
+        children: [{ id: "connectDay", label: "", type: "text", placeholder: "連絡がしやすい曜日・時間", conditional: (d: any) => d.connectFlag }],
       },
       {
         id: "nationality",
@@ -136,10 +132,10 @@ const sections = [
             type: "radio",
             conditionalValue: "foreigner",
             options: [
-              { label: "上級", value: "4" },
-              { label: "中級", value: "3" },
-              { label: "初級", value: "2" },
-              { label: "挨拶程度", value: "1" },
+              { label: "流暢に話せる", value: "4" },
+              { label: "簡単な会話ができる", value: "3" },
+              { label: "簡単な単語やフレーズだけわかる", value: "2" },
+              { label: "まったくわからない", value: "1" },
               { label: "その他・分からない", value: "-1" },
             ],
           },
@@ -174,7 +170,7 @@ const sections = [
             label: "",
             type: "text",
             placeholder: "通学先名称",
-            conditional: (d) => ["schoolChild", "highStudent"].includes(d.occupation),
+            conditional: (d: any) => ["schoolChild", "highStudent"].includes(d.occupation),
           },
           {
             id: "placeWorkType",
@@ -188,14 +184,14 @@ const sections = [
               { value: "medical", label: "医療従事者・介護師等" },
               { value: "otherWorker", label: "その他" },
             ],
-            conditional: (d) => ["worker"].includes(d.occupation),
+            conditional: (d: any) => ["worker"].includes(d.occupation),
             children: [
               {
                 id: "placeWorkerName",
                 label: "",
                 type: "text",
                 placeholder: "勤務先名称",
-                conditional: (d) => ["company", "teacher", "service", "medical"].includes(d.placeWorkType),
+                conditional: (d: any) => ["company", "teacher", "service", "medical"].includes(d.placeWorkType),
               },
               {
                 id: "placeWorkerCategory",
@@ -254,13 +250,13 @@ const sections = [
                 id: "contactPatientName",
                 label: "患者の名前",
                 type: "text",
-                conditional: (d) => ["living", "work"].includes(d.contactRelation),
+                conditional: (d: any) => ["living", "work"].includes(d.contactRelation),
               },
               {
                 id: "contactDuration",
                 label: "接触期間・状況",
                 type: "text",
-                conditional: (d) => ["work", "unknownRelation"].includes(d.contactRelation),
+                conditional: (d: any) => ["work", "unknownRelation"].includes(d.contactRelation),
               },
               {
                 id: "contactRelationOther",
@@ -275,7 +271,7 @@ const sections = [
             id: "checkupType",
             label: "検診の種類",
             type: "text",
-            conditional: (d) => ["healthCheck"].includes(d.requestReason),
+            conditional: (d: any) => ["healthCheck"].includes(d.requestReason),
             required: true,
           },
           {
@@ -283,7 +279,7 @@ const sections = [
             label: "検診日",
             type: "text",
             placeholder: "〇〇〇〇年〇〇月〇〇日",
-            conditional: (d) => ["healthCheck"].includes(d.requestReason),
+            conditional: (d: any) => ["healthCheck"].includes(d.requestReason),
             required: true,
           },
         ],
@@ -308,30 +304,6 @@ const sections = [
           { value: "other", label: "その他・分からない" },
         ],
         children: [
-          // {
-          //   id: "comorbidities",
-          //   label: "当てはまるものを全て選んで下さい",
-          //   type: "checkbox",
-          //   options: [
-          //     { value: "diabetes", label: "糖尿病" },
-          //     { value: "cancer", label: "がん・悪性腫瘍" },
-          //     { value: "pneumoconiosis", label: "塵肺" },
-          //     { value: "gastrectomy", label: "胃切除手術後" },
-          //     { value: "immunosuppressant", label: "免疫抑制剤の使用" },
-          //     { value: "pregnant", label: "妊娠中" },
-          //     { value: "other", label: "その他", inputs: ["otherComorbidity"] },
-          //   ],
-          //   conditionalValue: "underTreat",
-          //   children: [
-          //     {
-          //       id: "otherComorbidity",
-          //       label: "",
-          //       type: "text",
-          //       placeholder: "具体的に",
-          //       conditionalValue: "other",
-          //     },
-          //   ],
-          // },
           {
             id: "otherHealthStatus",
             label: "",
@@ -351,7 +323,7 @@ const sections = [
               { value: "since-mt1m", label: "1ヶ月以上前から" },
               { value: "other", label: "その他・分からない" },
             ],
-            conditional: (d) => ["underTreat", "underHospital"].includes(d.healthStatus),
+            conditional: (d: any) => ["underTreat", "underHospital"].includes(d.healthStatus),
             children: [
               {
                 id: "symptomSinceDetailed",
@@ -368,7 +340,7 @@ const sections = [
             label: "その他に症状はありますか？",
             placeholder: "複数ある場合は列挙して下さい",
             type: "text",
-            conditional: (d) => ["underTreat", "underHospital"].includes(d.healthStatus),
+            conditional: (d: any) => ["underTreat", "underHospital"].includes(d.healthStatus),
           },
 
           {
@@ -376,7 +348,15 @@ const sections = [
             label: "定期的な通院先の医療機関を教えて下さい",
             type: "text",
             placeholder: "複数ある場合は列挙して下さい",
-            conditional: (d) => ["underHospital"].includes(d.healthStatus),
+            conditional: (d: any) => ["underHospital"].includes(d.healthStatus),
+          },
+
+          {
+            id: "diseaseName",
+            label: "病気や疾患がある場合はお知らせください",
+            type: "text",
+            placeholder: "複数ある場合は列挙して下さい",
+            conditional: (d: any) => ["underHospital"].includes(d.healthStatus),
           },
 
           {
@@ -384,7 +364,43 @@ const sections = [
             label: "内服薬",
             placeholder: "薬の名前か種類",
             type: "list",
-            conditional: (d) => ["underHospital"].includes(d.healthStatus),
+            conditional: (d: any) => ["underHospital"].includes(d.healthStatus),
+          },
+        ],
+      },
+      {
+        id: "nonPatientTreated",
+        label: "その「せき」や「たん」について、検査や治療を受けていますか？",
+        type: "radio",
+        options: [
+          { value: "yes", label: "はい" },
+          { value: "no", label: "いいえ" },
+          { value: "unknown", label: "分からない" },
+        ],
+        conditional: (d: any) => ["underTreat"].includes(d.healthStatus),
+      },
+      {
+        id: "respiratoryHistory",
+        label: "過去２年間で、喘息など、何らかの呼吸器疾患といわれたことがありますか？",
+        type: "checkbox",
+        options: [
+          { value: "tb", label: "結核" },
+          { value: "asthma", label: "喘息" },
+          { value: "infiltration", label: "肺浸潤" },
+          { value: "pleuritis", label: "胸膜炎" },
+          { value: "peritonitis", label: "肋膜炎" },
+          { value: "lymph", label: "頚部リンパ節結核等" },
+          { value: "other", label: "その他", inputs: ["otherRespiratory"] },
+        ],
+        conditional: (d: any) => ["since-2w", "since-mt1m", "other"].includes(d.symptomSince),
+        children: [
+          {
+            id: "otherRespiratory",
+            label: "",
+            placeholder: "具体的に",
+            type: "text",
+            conditionalValue: "other",
+            required: true,
           },
         ],
       },
@@ -394,14 +410,14 @@ const sections = [
         label: "今回結核の診断をした医療機関を教えて下さい",
         type: "text",
         placeholder: "複数の医療機関を受診していた場合は列挙して下さい",
-        conditional: (d) => patientReasonsHospital.includes(d.requestReason),
+        conditional: (d: any) => patientReasonsHospital.includes(d.requestReason),
       },
       {
         id: "hospitalizations",
         label: "この2年間で入院した医療機関があれば教えて下さい",
         type: "text",
         placeholder: "大まかな入院時期も記載して下さい",
-        conditional: (d) => patientReasons.includes(d.requestReason),
+        conditional: (d: any) => patientReasons.includes(d.requestReason),
       },
       {
         id: "pastTb",
@@ -413,7 +429,7 @@ const sections = [
           { value: "yes", label: "あり" },
           { value: "unknown", label: "分からない" },
         ],
-        conditional: (d) => patientReasons.includes(d.requestReason),
+        conditional: (d: any) => patientReasons.includes(d.requestReason),
         children: [
           {
             id: "pastTbEpisode",
@@ -441,7 +457,7 @@ const sections = [
           { value: "yes", label: "あり" },
           { value: "unknown", label: "分からない" },
         ],
-        conditional: (d) => patientReasons.includes(d.requestReason),
+        conditional: (d: any) => patientReasons.includes(d.requestReason),
         children: [
           {
             id: "contactWithTbDetail",
@@ -449,73 +465,6 @@ const sections = [
             type: "text",
             placeholder: "○○年○○月頃、時々会っていた友人が発症した",
             conditionalValue: "yes",
-          },
-        ],
-      },
-
-      // --- 患者以外に聴取 ---
-      {
-        id: "cough2w",
-        label: "この２週間以上「せき」や「たん」が続いていますか？",
-        type: "radio",
-        required: true,
-        options: [
-          { value: "yes", label: "はい" },
-          { value: "no", label: "いいえ" },
-          { value: "unknown", label: "分からない" },
-        ],
-        conditional: (d) => !patientReasons.includes(d.requestReason),
-        children: [
-          {
-            id: "nonPatientSince",
-            label: "症状はいつごろから生じていますか？",
-            type: "radio",
-            options: [
-              { value: "lt1m", label: "１か月未満" },
-              { value: "1to2m", label: "１か月以上２か月未満" },
-              { value: "2to3m", label: "２か月以上３か月未満" },
-              { value: "3to6m", label: "３か月以上６か月未満" },
-              { value: "gt6m", label: "６か月以上" },
-              { value: "unk", label: "よく分からない" },
-            ],
-            conditionalValue: "yes",
-            required: true,
-          },
-          {
-            id: "nonPatientTreated",
-            label: "その「せき」や「たん」について、検査や治療を受けていますか？",
-            type: "radio",
-            options: [
-              { value: "yes", label: "はい" },
-              { value: "no", label: "いいえ" },
-              { value: "unknown", label: "分からない" },
-            ],
-            conditionalValue: "yes",
-            required: true,
-          },
-          {
-            id: "respiratoryHistory",
-            label: "過去２年間で、喘息など、何らかの呼吸器疾患といわれたことがありますか？",
-            type: "checkbox",
-            options: [
-              { value: "asthma", label: "喘息" },
-              { value: "infiltration", label: "肺浸潤" },
-              { value: "pleuritis", label: "胸膜炎" },
-              { value: "peritonitis", label: "肋膜炎" },
-              { value: "lymph", label: "頚部リンパ節結核等" },
-              { value: "other", label: "その他", inputs: ["otherRespiratory"] },
-            ],
-            conditionalValue: "yes",
-            children: [
-              {
-                id: "otherRespiratory",
-                label: "",
-                placeholder: "具体的に",
-                type: "text",
-                conditionalValue: "other",
-                required: true,
-              },
-            ],
           },
         ],
       },
@@ -530,7 +479,7 @@ const sections = [
           { value: "gt3year", label: "３年間以上受けていない" },
           { value: "other", label: "その他・分からない" },
         ],
-        conditional: (d) => !patientReasons.includes(d.requestReason),
+        conditional: (d: any) => !patientReasons.includes(d.requestReason),
         children: [
           {
             id: "checkupFollow",
@@ -542,7 +491,7 @@ const sections = [
               { value: "done", label: "指示を受け受診している" },
               { value: "other", label: "その他・分からない" },
             ],
-            conditional: (d) => ["annual", "fewYear"].includes(d.regularCheckup),
+            conditional: (d: any) => ["annual", "fewYear"].includes(d.regularCheckup),
             required: true,
           },
         ],
@@ -558,14 +507,14 @@ const sections = [
           { value: "yes", label: "飲んでいる" },
           { value: "other", label: "その他・分からない" },
         ],
-        conditional: (d) => !patientReasons.includes(d.requestReason),
+        conditional: (d: any) => !patientReasons.includes(d.requestReason),
         children: [
           {
             id: "tbMedicationReason",
             label: "理由を教えて下さい",
             type: "text",
             placeholder: "例: 予防内服",
-            conditional: (d) => ["planned", "yes"].includes(d.tbMedication),
+            conditional: (d: any) => ["planned", "yes"].includes(d.tbMedication),
             required: true,
           },
         ],
@@ -764,42 +713,42 @@ const sections = [
         label: "塾・予備校に通っていますか？",
         type: "text",
         placeholder: "学校名・週〇回等",
-        conditional: (d) => Number(d.age) >= 6 && Number(d.age) <= 18 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 6 && Number(d.age) <= 18 && symptomCondition(d),
       },
       {
         id: "studentLessons",
         label: "習い事に通っていますか？",
         type: "text",
         placeholder: "施設名・週〇回等",
-        conditional: (d) => Number(d.age) >= 6 && Number(d.age) <= 18 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 6 && Number(d.age) <= 18 && symptomCondition(d),
       },
       {
         id: "adultShoppingStores",
         label: "よく買い物に行く店はありますか？",
         type: "text",
         placeholder: "店名・週〇回等",
-        conditional: (d) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
       },
       {
         id: "adultRestaurants",
         label: "よく食事に行く飲食店はありますか？",
         type: "text",
         placeholder: "店名・週〇回等",
-        conditional: (d) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
       },
       {
         id: "adultPartTime",
         label: "アルバイトしている先があれば、教えて下さい",
         type: "text",
         placeholder: "店名・週〇回等",
-        conditional: (d) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
       },
       {
         id: "adultActivities",
         label: "サークル活動やボランティア活動はしていますか？",
         type: "text",
         placeholder: "組織名・週〇回等",
-        conditional: (d) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
       },
       {
         id: "adultFacilities",
@@ -881,21 +830,21 @@ const sections = [
             conditionalValue: "simpleInn",
           },
         ],
-        conditional: (d) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
       },
       {
         id: "adultOtherPlaces",
         label: "スポーツ施設等、上記以外に月１回以上行くような場所があれば教えて下さい",
         type: "text",
         placeholder: "施設名・週〇回等",
-        conditional: (d) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
       },
       {
         id: "adultLiveEvents",
         label: "ライブやコンサート等、大勢の人が集まるような機会への参加があれば、教えて下さい",
         type: "list",
         placeholder: "例: コンサート名・場所や参加回数など",
-        conditional: (d) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 18 && Number(d.age) <= 75 && symptomCondition(d),
       },
       {
         id: "elderlyShortStay",
@@ -914,7 +863,7 @@ const sections = [
             conditionalValue: "yes",
           },
         ],
-        conditional: (d) => Number(d.age) >= 70 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 70 && symptomCondition(d),
       },
       {
         id: "elderlyDayService",
@@ -933,34 +882,34 @@ const sections = [
             conditionalValue: "yes",
           },
         ],
-        conditional: (d) => Number(d.age) >= 70 && symptomCondition(d),
+        conditional: (d: any) => Number(d.age) >= 70 && symptomCondition(d),
       },
       {
         id: "foreignSchool",
         label: "日本語学校や専門学校等、日本で通っていた学校があれば、教えて下さい",
         type: "text",
         placeholder: "学校名・所在地等",
-        conditional: (d) => ["foreigner"].includes(d.nationality) && symptomCondition(d),
+        conditional: (d: any) => ["foreigner"].includes(d.nationality) && symptomCondition(d),
       },
       {
         id: "foreignGatherings",
         label: "同郷の方々が集まるような集会等があれば、教えて下さい",
         type: "text",
         placeholder: "名称・所在地等",
-        conditional: (d) => ["foreigner"].includes(d.nationality) && symptomCondition(d),
+        conditional: (d: any) => ["foreigner"].includes(d.nationality) && symptomCondition(d),
       },
       {
         id: "vulnerableHomelessSpots",
         label: "よく野宿する場所があれば、教えて下さい",
         type: "text",
-        conditional: (d) => ["homeless"].includes(d.livingSituation) && symptomCondition(d),
+        conditional: (d: any) => ["homeless"].includes(d.livingSituation) && symptomCondition(d),
       },
       {
         id: "vulnerableFacilities",
         label: "よく利用する福祉施設・職業安定所・障害者施設等があれば、教えて下さい",
         type: "text",
         placeholder: "名称・所在地等",
-        conditional: (d) => ["homeless"].includes(d.livingSituation) && symptomCondition(d),
+        conditional: (d: any) => ["homeless"].includes(d.livingSituation) && symptomCondition(d),
       },
     ],
   },

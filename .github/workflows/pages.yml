@@ -12,10 +12,16 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
 
       - name: Debug Runner Env
         run: |
@@ -29,19 +35,24 @@ jobs:
           echo "=== ENV vars ==="
           env | sort
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm install
 
       - name: Build with GITHUB_PAGES env
-        run: GITHUB_PAGES=true npx vite build
+        run: GITHUB_PAGES=true npm run build
 
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: dist }
+      - name: Upload build artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

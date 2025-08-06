@@ -27,7 +27,3 @@ coverage/
 # PM2 or pnpm logs
 pm2.log
 pnpm-debug.log
-
-**/node_modules
-**/dist
-
