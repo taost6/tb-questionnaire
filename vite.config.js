@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
-  // GitHub Pages用: リポジトリ名に合わせる
+  // GitHub Pages 用: リポジトリ名に合わせる
   // Render等の他のホスティングサービスでは base を設定しない
   base: process.env.NODE_ENV === 'production' && process.env.GITHUB_PAGES === 'true' 
     ? "/tb-questionnaire" 
