@@ -3569,6 +3569,28 @@ const Lang = {
         bn: "結核問診票 / যক্ষ্মা প্রশ্নাবলী",
         pt: "結核問診票 / Questionário de Tuberculose"
     },
+    exitChat: {
+        jp: "このチャットを終了したいです。",
+        en: "I would like to end this chat.",
+        tl: "Gusto kong tapusin ang chat na ito.",
+        vi: "Tôi muốn kết thúc cuộc trò chuyện này.",
+        th: "ฉันต้องการจบการสนทนานี้",
+        my: "ဤစကားဝိုင်းကို အဆုံးသတ်လိုပါသည်။",
+        km: "ខ្ញុំចង់បញ្ចប់ការជជែកនេះ។",
+        bn: "আমি এই চ্যাট শেষ করতে চাই।",
+        pt: "Gostaria de terminar este bate-papo."
+    },
+    exitConfirm: {
+        jp: "本当に会話を終了しますか？",
+        en: "Do you really want to exit the conversation?",
+        tl: "Talaga bang nais mong tapusin ang pag-uusap?",
+        vi: "Bạn có thực sự muốn thoát khỏi cuộc trò chuyện không?",
+        th: "คุณต้องการที่จะออกจากการสนทนาจริง ๆ หรือไม่?",
+        my: "မိမိအမှန်တကယ် စကားဝိုင်းမှ တက်ထွက္ချင်ပါသလား?",
+        km: "តើអ្នកពិតជាចង់ចាកចេញពីការជជែកនេះមែនទេ?",
+        bn: "আপনি কি সত্যিই কথোপকথন থেকে বের হতে চান?",
+        pt: "Você realmente quer sair da conversa?"
+    }
 };
 
 export default Lang;
