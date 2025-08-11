@@ -28,12 +28,19 @@ const TbDialogueWizard = () => {
             return;
         }
         setSessionId(id);
-        const language = localStorage.getItem("tbq-lang");
-        if (language) setLang(language);
+
+        const storedLang = localStorage.getItem("tbq-lang");
+        if (storedLang) setLang(storedLang);
+    }, []);
+
+    useEffect(() => {
+        if (!sessionId) return;
+        if (isLoading) return;
+
         const fetchData = async () => {
             if (isLoading) return;
             setIsLoading(true);
-            const savedMsgs = await sendRequest({}, "GET", `messages/${id}`);
+            const savedMsgs = await sendRequest({}, "GET", `messages/${sessionId}`);
             if (!savedMsgs) return;
             setSingleChoice(false);
             if (savedMsgs.length > 0) {
@@ -55,7 +62,7 @@ const TbDialogueWizard = () => {
         };
 
         fetchData();
-    }, []);
+    }, [lang]);
 
     useEffect(() => {
         scrollRef.current?.scrollIntoView({});
@@ -127,6 +134,18 @@ const TbDialogueWizard = () => {
             e.preventDefault();
             await sendMsg();
         }
+    };
+
+    const handleExit = () => {
+        const userConfirmed = confirm(getLang(lang, "exitConfirm"));
+        if (userConfirmed) {
+            endConversation();
+        }
+    };
+
+    const endConversation = () => {
+        inputRef.current.innerText = getLang(lang, "exitChat");
+        sendMsg();
     };
 
     const msgRender = (msg, idx) => {
@@ -222,7 +241,9 @@ const TbDialogueWizard = () => {
             </motion.div>
 
             <div className="mt-4 text-right">
-                <Button className="bg-blue-500 text-white">{getLang(lang, "exit")}</Button>
+                <Button className="bg-blue-500 text-white" onClick={handleExit}>
+                    {getLang(lang, "exit")}
+                </Button>
             </div>
         </div>
         // </div>
